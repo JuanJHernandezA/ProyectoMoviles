@@ -5,40 +5,32 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.calendapp.ui.theme.CalendappTheme
-import com.example.calendapp.login.Login
+import com.example.calendapp.notificaciones.NotificationCenter // Importamos el composable NotificationCenter
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge()  // Configura la interfaz para usar el modo edge-to-edge
         setContent {
-            Login (onLoginSuccess = {
-                // Aquí puedes navegar a otra pantalla
-            })
-
+            // Aquí puedes usar el NotificationCenter
+            CalendappTheme {
+                NotificationCenter() // Mostrar las notificaciones
+            }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun DefaultPreview() {
     CalendappTheme {
-        Greeting("Android")
+        // Previsualizamos el NotificationCenter
+        NotificationCenter()
     }
 }
