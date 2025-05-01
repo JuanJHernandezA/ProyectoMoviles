@@ -202,8 +202,8 @@ fun LoginScreen(
                         color = Color.White
                     )
                 } else {
-                    Text("Iniciar sesión", color = Color.White, fontSize = 16.sp)
-                }
+                Text("Iniciar sesión", color = Color.White, fontSize = 16.sp)
+            }
             }
 
             loginState.error?.let { error ->

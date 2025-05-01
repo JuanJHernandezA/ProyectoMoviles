@@ -45,8 +45,8 @@ fun AddUserScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
+    ) {
+        Text(
                 text = "Registro de Usuario",
                 fontSize = 24.sp,
                 color = Color.White,
@@ -110,7 +110,7 @@ fun AddUserScreen(
             )
 
             // Campo de Edad
-            OutlinedTextField(
+        OutlinedTextField(
                 value = userState.user.edad,
                 onValueChange = { viewModel.onFieldChanged("edad", it) },
                 label = { Text("Edad", color = Color.White) },
@@ -138,7 +138,7 @@ fun AddUserScreen(
             )
 
             // Campo de Rol
-            OutlinedTextField(
+        OutlinedTextField(
                 value = userState.user.rol,
                 onValueChange = { viewModel.onFieldChanged("rol", it) },
                 label = { Text("Rol", color = Color.White) },
@@ -166,7 +166,7 @@ fun AddUserScreen(
             )
 
             // Campo de Contraseña
-            OutlinedTextField(
+        OutlinedTextField(
                 value = userState.user.contrasena,
                 onValueChange = { viewModel.onFieldChanged("contrasena", it) },
                 label = { Text("Contraseña", color = Color.White) },
@@ -176,14 +176,14 @@ fun AddUserScreen(
                     unfocusedBorderColor = Color.Gray,
                     cursorColor = Color.White
                 ),
-                visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = PasswordVisualTransformation(),
                 enabled = !userState.isLoading
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
             // Botón de Registrar
-            Button(
+        Button(
                 onClick = { viewModel.createUser() },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -212,8 +212,8 @@ fun AddUserScreen(
                 )
             }
         }
+        }
     }
-}
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
