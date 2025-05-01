@@ -5,16 +5,26 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun LoginScreenPreview() {
+    LoginScreen(
+        viewModel = LoginViewModel(),
+        onLoginSuccess = {}
+    )
+}
 
 @Composable
 fun Login(onLoginSuccess: () -> Unit) {
@@ -104,11 +114,10 @@ fun LoginScreen(
     viewModel: LoginViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onLoginSuccess: () -> Unit
 ) {
-    val credentials = viewModel.credentials.value
-    val loginSuccess = viewModel.loginSuccess.value
+    val loginState by viewModel.loginState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(loginSuccess) {
-        if (loginSuccess) {
+    LaunchedEffect(loginState.isSuccess) {
+        if (loginState.isSuccess) {
             onLoginSuccess()
             viewModel.resetLoginState()
         }
@@ -122,7 +131,8 @@ fun LoginScreen(
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Inicio de sesión",
@@ -145,7 +155,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
-                value = credentials.email,
+                value = loginState.email,
                 onValueChange = viewModel::onEmailChanged,
                 label = { Text("Email", color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
@@ -153,13 +163,14 @@ fun LoginScreen(
                     focusedBorderColor = Color(0xFF0077FF),
                     unfocusedBorderColor = Color.Gray,
                     cursorColor = Color.White
-                )
+                ),
+                enabled = !loginState.isLoading
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = credentials.password,
+                value = loginState.password,
                 onValueChange = viewModel::onPasswordChanged,
                 label = { Text("Contraseña", color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
@@ -168,7 +179,8 @@ fun LoginScreen(
                     unfocusedBorderColor = Color.Gray,
                     cursorColor = Color.White
                 ),
-                visualTransformation = PasswordVisualTransformation()
+                visualTransformation = PasswordVisualTransformation(),
+                enabled = !loginState.isLoading
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -181,20 +193,27 @@ fun LoginScreen(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF004080)
                 ),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(8.dp),
+                enabled = !loginState.isLoading
             ) {
-                Text("Iniciar sesión", color = Color.White, fontSize = 16.sp)
+                if (loginState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White
+                    )
+                } else {
+                    Text("Iniciar sesión", color = Color.White, fontSize = 16.sp)
+                }
             }
-            val loginError = viewModel.loginError.value
 
-            if (loginError != null) {
+            loginState.error?.let { error ->
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = loginError,
+                    text = error,
                     color = Color.Red,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
-
         }
     }
 }
