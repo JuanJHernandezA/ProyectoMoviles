@@ -68,9 +68,18 @@ class LoginViewModel : ViewModel() {
                         return@launch
                     }
 
+                    if (role != "admin" && role != "usuario") {
+                        _loginState.value = _loginState.value.copy(
+                            isLoading = false,
+                            error = "Error: rol de usuario no válido"
+                        )
+                        return@launch
+                    }
+
                     _loginState.value = _loginState.value.copy(
                         isLoading = false,
-                        isSuccess = true
+                        isSuccess = true,
+                        userRole = role
                     )
                 } else {
                     _loginState.value = _loginState.value.copy(

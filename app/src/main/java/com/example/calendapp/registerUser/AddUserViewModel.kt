@@ -78,7 +78,7 @@ class AddUserViewModel : ViewModel() {
                         .document(uid)
                         .set(userData)
                         .await()
-
+                
                     _userState.value = _userState.value.copy(
                         isLoading = false,
                         isSuccess = true
