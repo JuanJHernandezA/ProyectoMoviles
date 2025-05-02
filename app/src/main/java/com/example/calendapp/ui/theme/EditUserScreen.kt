@@ -24,7 +24,7 @@ import com.example.calendapp.R
 import com.example.calendapp.ui.theme.* // Aquí estamos importando los colores definidos
 
 @Composable
-fun AddUserScreen(
+fun EditUserScreen(
     onBackClick: () -> Unit = {} // Placeholder
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -70,7 +70,7 @@ fun AddUserScreen(
                     color = White // Usando color blanco para el texto
                 )
                 Text(
-                    text = "Administrador",
+                    text = "Rol",
                     fontSize = 14.sp,
                     color = AccentColor // Usando el color de acento
                 )
@@ -80,20 +80,20 @@ fun AddUserScreen(
         // Formulario
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Editor información",
+                text = "Agregar usuario",
                 fontSize = 24.sp,
                 color = White, // Usando color blanco
                 modifier = Modifier.padding(top = 10.dp)
             )
 
             Spacer(modifier = Modifier.height(10.dp))
-            AddUserFormField(label = "Correo electrónico", keyboardType = KeyboardType.Email)
-            AddUserFormField(label = "Contraseña", isPassword = true)
-            AddUserFormField(label = "Confirmación de contraseña", isPassword = true)
-            AddUserFormField(label = "Nombre", keyboardType = KeyboardType.Text)
-            AddUserFormField(label = "Apellido", keyboardType = KeyboardType.Text)
-            AddUserFormField(label = "Número de celular", keyboardType = KeyboardType.Phone)
-            AddUserFormField(label = "Género", keyboardType = KeyboardType.Text)
+            EditUserFormField(label = "Correo electrónico", keyboardType = KeyboardType.Email)
+            EditUserFormField(label = "Contraseña", isPassword = true)
+            EditUserFormField(label = "Confirmación de contraseña", isPassword = true)
+            EditUserFormField(label = "Nombre", keyboardType = KeyboardType.Text)
+            EditUserFormField(label = "Apellido", keyboardType = KeyboardType.Text)
+            EditUserFormField(label = "Número de celular", keyboardType = KeyboardType.Phone)
+            EditUserFormField(label = "Género", keyboardType = KeyboardType.Text)
 
             Button(
                 onClick = { /* futura lógica */ },
@@ -111,7 +111,7 @@ fun AddUserScreen(
 }
 
 @Composable
-fun AddUserFormField(
+fun EditUserFormField(
     label: String,
     keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false
@@ -147,7 +147,7 @@ fun AddUserFormField(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun AddUserScreenPreview() {
+fun EditUserScreen() {
     com.example.calendapp.ui.theme.CalendappTheme {
         AddUserScreen()
     }
