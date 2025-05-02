@@ -16,18 +16,15 @@ class AddUserViewModel : ViewModel() {
     fun onFieldChanged(field: String, value: String) {
         _userState.value = _userState.value.copy(
             user = _userState.value.user.copy(
-                when (field) {
-                    "cedula" -> cedula = value
-                    "nombre" -> nombre = value
-                    "apellido" -> apellido = value
-                    "genero" -> genero = value
-                    "edad" -> edad = value
-                    "telefono" -> telefono = value
-                    "rol" -> rol = value
-                    "correo" -> correo = value
-                    "contrasena" -> contrasena = value
-                    else -> {}
-                }
+                cedula = if (field == "cedula") value else _userState.value.user.cedula,
+                nombre = if (field == "nombre") value else _userState.value.user.nombre,
+                apellido = if (field == "apellido") value else _userState.value.user.apellido,
+                genero = if (field == "genero") value else _userState.value.user.genero,
+                edad = if (field == "edad") value else _userState.value.user.edad,
+                telefono = if (field == "telefono") value else _userState.value.user.telefono,
+                rol = if (field == "rol") value else _userState.value.user.rol,
+                correo = if (field == "correo") value else _userState.value.user.correo,
+                contrasena = if (field == "contrasena") value else _userState.value.user.contrasena
             )
         )
     }
