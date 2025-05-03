@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.calendapp.ui.theme.CalendappTheme
 import com.example.calendapp.agregar_calendario.NuevoHorarioScreen // Importamos NuevoHorarioScreen
-import com.example.calendapp.notificaciones.NotificationCenter
+import com.example.calendapp.notificaciones.CentroNotificacionesScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DefaultPreview() {
     CalendappTheme {
-        //NotificationCenter()
-        NuevoHorarioScreen() // Previsualizamos la pantalla de agregar calendario
+        CentroNotificacionesScreen()
+        //NuevoHorarioScreen()
     }
 }
