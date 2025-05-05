@@ -1,18 +1,10 @@
 package com.example.calendapp.agregar_calendario
 
+import android.app.TimePickerDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -35,6 +27,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -46,11 +42,47 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.calendapp.R
+import java.util.*
 
 @Composable
 fun NuevoHorarioScreen() {
+    val navController = rememberNavController()
+
+    // Estados para las horas seleccionadas
+    var horaInicio by remember { mutableStateOf("Inicio") }
+    var horaFin by remember { mutableStateOf("Fin") }
+
+    // TimePickerDialogs
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+
+    val timePickerInicio = TimePickerDialog(
+        context,
+        { _, hourOfDay, minute ->
+            horaInicio = String.format("%02d:%02d", hourOfDay, minute)
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        true // Usar formato de 24 horas
+    )
+
+    val timePickerFin = TimePickerDialog(
+        context,
+        { _, hourOfDay, minute ->
+            horaFin = String.format("%02d:%02d", hourOfDay, minute)
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        true // Usar formato de 24 horas
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -203,42 +235,52 @@ fun NuevoHorarioScreen() {
             // Campos: Inicio y Fin
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
-                    onClick = { /* seleccionar hora inicio */ },
+                    onClick = { timePickerInicio.show() }, // Mostrar TimePicker para "Inicio"
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF2A3C53))
                 ) {
                     Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
                     Spacer(Modifier.width(4.dp))
-                    Text("Inicio", color = Color.White)
+                    Text(horaInicio, color = Color.White) // Mostrar la hora seleccionada o "Inicio"
                 }
 
                 OutlinedButton(
-                    onClick = { /* seleccionar hora fin */ },
+                    onClick = { timePickerFin.show() }, // Mostrar TimePicker para "Fin"
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF2A3C53))
                 ) {
                     Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
                     Spacer(Modifier.width(4.dp))
-                    Text("Fin", color = Color.White)
+                    Text(horaFin, color = Color.White) // Mostrar la hora seleccionada o "Fin"
                 }
             }
 
             // Botón: Personalizar frecuencia alineado a la izquierda y del mismo tamaño que "Añade una descripción"
-            OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                label = { Text("Personalizar frecuencia", color = Color.White) },
-                leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF2A3C53),
-                    unfocusedContainerColor = Color(0xFF2A3C53),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedIndicatorColor = Color.White,
-                    unfocusedIndicatorColor = Color.Gray
-                )
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF2A3C53), shape = RoundedCornerShape(8.dp)) // Fondo gris con bordes redondeados
+                    .clickable {
+                        navController.navigate("frecuencia_dialog") // Navegar al diálogo
+                    }
+                    .padding(horizontal = 12.dp, vertical = 16.dp) // Espaciado interno
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Personalizar frecuencia",
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Personalizar frecuencia",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
 
             // Botón: Agregar ubicación alineado a la izquierda y del mismo tamaño que "Añade una descripción"
             OutlinedTextField(
@@ -292,6 +334,27 @@ fun NuevoHorarioScreen() {
                 ) {
                     Text("Cancelar", color = Color.White)
                 }
+            }
+        }
+
+        // Navegación
+        NavHost(navController = navController, startDestination = "nuevo_horario") {
+            composable("nuevo_horario") { /* Pantalla actual */ }
+            composable("frecuencia_dialog") {
+                FrecuenciaDialog(
+                    onDismiss = { navController.popBackStack() },
+                    onOptionSelected = { opcion ->
+                        if (opcion == "Personalización...") {
+                            navController.navigate("personalizacion_frecuencia") // Navega a la pantalla de personalización
+                        }
+                    }
+                )
+            }
+            composable("personalizacion_frecuencia") {
+                PersonalizacionFrecuenciaDialog(
+                    onDismiss = { navController.popBackStack() },
+                    onComplete = { navController.popBackStack("nuevo_horario", inclusive = false) }
+                )
             }
         }
     }

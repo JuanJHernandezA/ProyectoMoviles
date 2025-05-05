@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -60,4 +61,5 @@ dependencies {
     // Dependencia de Coil para cargar imágenes
     implementation("io.coil-kt:coil-compose:2.1.0")
     implementation("androidx.compose.material:material-icons-extended") // Agregado
+    implementation ("androidx.compose.material3:material3:1.2.0") // o versión más reciente
 }
