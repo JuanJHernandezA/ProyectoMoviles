@@ -59,6 +59,11 @@ fun NuevoHorarioScreen() {
     var horaInicio by remember { mutableStateOf("Inicio") }
     var horaFin by remember { mutableStateOf("Fin") }
 
+    // Agregar estos estados al inicio de la función
+    var ubicacion by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
+    var nombreUsuario by remember { mutableStateOf("") }
+
     // TimePickerDialogs
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
@@ -180,8 +185,8 @@ fun NuevoHorarioScreen() {
         ) {
             // Campo: Nombre del usuario
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
+                value = nombreUsuario,
+                onValueChange = { nombreUsuario = it },
                 label = { Text("Escribe el nombre del usuario", color = Color.White) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
@@ -211,13 +216,18 @@ fun NuevoHorarioScreen() {
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
+                enabled = false, // Deshabilita la edición del campo
+                readOnly = true, // Hace el campo de solo lectura
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF2A3C53),
                     unfocusedContainerColor = Color(0xFF2A3C53),
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
                     focusedIndicatorColor = Color.White,
-                    unfocusedIndicatorColor = Color.Gray
+                    unfocusedIndicatorColor = Color.Gray,
+                    disabledTextColor = Color.White, // Color del texto cuando está deshabilitado
+                    disabledContainerColor = Color(0xFF2A3C53), // Color del contenedor cuando está deshabilitado
+                    disabledIndicatorColor = Color.Gray // Color del indicador cuando está deshabilitado
                 )
             )
 
@@ -255,37 +265,40 @@ fun NuevoHorarioScreen() {
                 }
             }
 
-            // Botón: Personalizar frecuencia alineado a la izquierda y del mismo tamaño que "Añade una descripción"
+            // Reemplazar el OutlinedTextField actual por un Box con OutlinedTextField
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF2A3C53), shape = RoundedCornerShape(8.dp)) // Fondo gris con bordes redondeados
                     .clickable {
-                        navController.navigate("frecuencia_dialog") // Navegar al diálogo
+                        navController.navigate("frecuencia_dialog")
                     }
-                    .padding(horizontal = 12.dp, vertical = 16.dp) // Espaciado interno
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Personalizar frecuencia",
-                        tint = Color.White
+                OutlinedTextField(
+                    value = "", // Campo vacío ya que es solo para mostrar
+                    onValueChange = { },
+                    label = { Text("Personalizar frecuencia", color = Color.White) },
+                    leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true, // Hacer el campo de solo lectura
+                    enabled = false, // Deshabilitar el campo para evitar interacciones directas
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF2A3C53),
+                        unfocusedContainerColor = Color(0xFF2A3C53),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedIndicatorColor = Color.White,
+                        unfocusedIndicatorColor = Color.Gray,
+                        disabledTextColor = Color.White,
+                        disabledContainerColor = Color(0xFF2A3C53),
+                        disabledIndicatorColor = Color.Gray
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Personalizar frecuencia",
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                )
             }
 
-            // Botón: Agregar ubicación alineado a la izquierda y del mismo tamaño que "Añade una descripción"
+            // Campo: Agregar ubicación
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
+                value = ubicacion,
+                onValueChange = { ubicacion = it },
                 label = { Text("Agregar ubicación", color = Color.White) },
                 leadingIcon = { Icon(Icons.Default.Place, contentDescription = null, tint = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
@@ -301,8 +314,8 @@ fun NuevoHorarioScreen() {
 
             // Campo: Añadir descripción
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
+                value = descripcion,
+                onValueChange = { descripcion = it },
                 label = { Text("Añade una descripción", color = Color.White) },
                 leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, tint = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
@@ -316,7 +329,7 @@ fun NuevoHorarioScreen() {
                 )
             )
 
-            // Botones inferiores: Guardar y Cancelar
+            // Botones inferiores: Guardar y Cancelar (intercambiados)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -325,14 +338,14 @@ fun NuevoHorarioScreen() {
                     onClick = {},
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A446D))
                 ) {
-                    Text("Guardar", color = Color.White)
+                    Text("Cancelar", color = Color.White)
                 }
 
                 Button(
                     onClick = {},
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A446D))
                 ) {
-                    Text("Cancelar", color = Color.White)
+                    Text("Guardar", color = Color.White)
                 }
             }
         }

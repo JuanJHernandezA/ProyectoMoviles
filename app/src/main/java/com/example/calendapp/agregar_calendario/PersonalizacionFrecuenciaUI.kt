@@ -158,20 +158,41 @@ fun PersonalizacionFrecuenciaDialog(
                 // Opciones de finalización
                 Column {
                     // Opción "Nunca"
-                    RadioButtonWithLabel("Nunca", selectedRadio) { selectedRadio = "Nunca" }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        RadioButton(
+                            selected = selectedRadio == "Nunca",
+                            onClick = { selectedRadio = "Nunca" },
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = Color(0xFF4FC3F7),
+                                unselectedColor = Color.White
+                            )
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Nunca",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
 
                     // Opción "El dd/mm/aaaa"
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(vertical = 4.dp)
                             .clickable {
                                 selectedRadio = "El dd/mm/aaaa"
                                 showDatePicker = true
                             }
                     ) {
                         RadioButton(
-                            selected = selectedRadio == "El dd/mm/aaaa",
+                            selected = selectedRadio == "El dd/mm/aaaa" || selectedRadio.startsWith("El "),
                             onClick = {
                                 selectedRadio = "El dd/mm/aaaa"
                                 showDatePicker = true
@@ -192,7 +213,9 @@ fun PersonalizacionFrecuenciaDialog(
                     // Opción "Después de # repeticiones"
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
                     ) {
                         RadioButton(
                             selected = selectedRadio == "Despues de # repeticion",
@@ -203,46 +226,58 @@ fun PersonalizacionFrecuenciaDialog(
                             )
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Después de",
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedTextField(
-                            value = numeroRepeticionesFinaliza,
-                            onValueChange = { if (it.all { char -> char.isDigit() }) numeroRepeticionesFinaliza = it },
-                            placeholder = { Text("#") },
-                            modifier = Modifier
-                                .width(50.dp)
-                                .height(57.dp),
-                            singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                disabledTextColor = Color.Gray,
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                disabledContainerColor = Color.Transparent,
-                                cursorColor = Color(0xFF4FC3F7),
-                                errorCursorColor = Color.Red,
-                                focusedBorderColor = Color(0xFF4FC3F7),
-                                unfocusedBorderColor = Color.Gray,
-                                disabledBorderColor = Color.Transparent,
-                                errorBorderColor = Color.Red,
-                                focusedLabelColor = Color.Gray,
-                                unfocusedLabelColor = Color.Gray,
-                                focusedPlaceholderColor = Color.Gray,
-                                unfocusedPlaceholderColor = Color.Gray,
-                                disabledPlaceholderColor = Color.LightGray
+                        
+                        // Contenedor flexible para el texto y la caja de texto
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Después de",
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium
                             )
-                        )
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Text(
-                            text = "repeticiones",
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            
+                            // Caja de texto con ancho dinámico pero limitado
+                            OutlinedTextField(
+                                value = numeroRepeticionesFinaliza,
+                                onValueChange = { if (it.all { char -> char.isDigit() }) numeroRepeticionesFinaliza = it },
+                                placeholder = { Text("#") },
+                                modifier = Modifier
+                                    .widthIn(min = 50.dp, max = 54.dp) // Limitamos el ancho máximo para dejar espacio a "repeticiones"
+                                    .height(57.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    disabledTextColor = Color.Gray,
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Transparent,
+                                    cursorColor = Color(0xFF4FC3F7),
+                                    errorCursorColor = Color.Red,
+                                    focusedBorderColor = Color(0xFF4FC3F7),
+                                    unfocusedBorderColor = Color.Gray,
+                                    disabledBorderColor = Color.Transparent,
+                                    errorBorderColor = Color.Red,
+                                    focusedLabelColor = Color.Gray,
+                                    unfocusedLabelColor = Color.Gray,
+                                    focusedPlaceholderColor = Color.Gray,
+                                    unfocusedPlaceholderColor = Color.Gray,
+                                    disabledPlaceholderColor = Color.LightGray
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            
+                            // Texto "repeticiones" con espacio garantizado
+                            Text(
+                                text = "repeticiones",
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f) // Toma el espacio restante
+                            )
+                        }
                     }
                 }
 
@@ -276,7 +311,7 @@ fun PersonalizacionFrecuenciaDialog(
             context,
             { _, year, month, dayOfMonth ->
                 fechaSeleccionada = "$dayOfMonth/${month + 1}/$year"
-                selectedRadio = "El $fechaSeleccionada" // Actualizar el texto dinámicamente
+                selectedRadio = "El dd/mm/aaaa" // Mantenemos el valor base para la selección
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
