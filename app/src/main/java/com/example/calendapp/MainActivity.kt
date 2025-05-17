@@ -9,7 +9,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.calendapp.agregar_calendario.FrecuenciaDialog
 import com.example.calendapp.ui.theme.CalendappTheme
 import com.example.calendapp.agregar_calendario.NuevoHorarioScreen
-import com.example.calendapp.notificaciones.CentroNotificacionesScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

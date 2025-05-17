@@ -50,19 +50,75 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.calendapp.R
 import java.util.*
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.ui.text.style.TextAlign
+import com.example.calendapp.notificaciones.NotificacionesUI
 
 @Composable
 fun NuevoHorarioScreen() {
     val navController = rememberNavController()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     // Estados para las horas seleccionadas
     var horaInicio by remember { mutableStateOf("Inicio") }
     var horaFin by remember { mutableStateOf("Fin") }
 
+    // Estados para usuarios
+    var nombreUsuario by remember { mutableStateOf("") }
+    var mostrarVentanaSugerencias by remember { mutableStateOf(false) }
+    var mostrarVentanaAsignados by remember { mutableStateOf(false) }
+    var usuariosSeleccionados by remember { mutableStateOf(listOf<UsuarioSugerido>()) }
+    var usuariosSugeridos by remember { 
+        mutableStateOf(
+            listOf(
+                UsuarioSugerido("Carlos Pérez", false),
+                UsuarioSugerido("María Gómez", false),
+                UsuarioSugerido("Luis Martínez", false),
+                UsuarioSugerido("Ana Torres", false),
+                UsuarioSugerido("Diego Ríos", false)
+            )
+        ) 
+    }
+
     // Agregar estos estados al inicio de la función
     var ubicacion by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
-    var nombreUsuario by remember { mutableStateOf("") }
+
+    // Función para limpiar todos los campos
+    fun limpiarCampos() {
+        horaInicio = "Inicio"
+        horaFin = "Fin"
+        ubicacion = ""
+        descripcion = ""
+        nombreUsuario = ""
+        mostrarVentanaSugerencias = false
+        mostrarVentanaAsignados = false
+        usuariosSeleccionados = listOf()
+        usuariosSugeridos = listOf(
+            UsuarioSugerido("Carlos Pérez", false),
+            UsuarioSugerido("María Gómez", false),
+            UsuarioSugerido("Luis Martínez", false),
+            UsuarioSugerido("Ana Torres", false),
+            UsuarioSugerido("Diego Ríos", false)
+        )
+    }
+
+    // Función para mostrar mensaje
+    fun mostrarMensaje(mensaje: String) {
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = mensaje,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
 
     // TimePickerDialogs
     val context = LocalContext.current
@@ -147,7 +203,7 @@ fun NuevoHorarioScreen() {
             }
 
             // Ícono de notificaciones (campana) más grande
-            IconButton(onClick = { /* Acción para abrir notificaciones */ }) {
+            IconButton(onClick = { navController.navigate("notificaciones") }) {
                 Icon(
                     imageVector = Icons.Default.Notifications, // Ícono de campana
                     contentDescription = "Notificaciones",
@@ -175,10 +231,10 @@ fun NuevoHorarioScreen() {
             )
         }
 
-        // Contenido principal debajo de la cabecera
+        // Contenido principal
         Column(
             modifier = Modifier
-                .padding(top = 220.dp) // Alineamos todo este bloque debajo de la imagen
+                .padding(top = 220.dp)
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -186,7 +242,10 @@ fun NuevoHorarioScreen() {
             // Campo: Nombre del usuario
             OutlinedTextField(
                 value = nombreUsuario,
-                onValueChange = { nombreUsuario = it },
+                onValueChange = { 
+                    nombreUsuario = it
+                    mostrarVentanaSugerencias = it.isNotEmpty()
+                },
                 label = { Text("Escribe el nombre del usuario", color = Color.White) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
@@ -200,24 +259,24 @@ fun NuevoHorarioScreen() {
                 )
             )
 
-            // Campo: Usuarios asignados (Dropdown simulado)
+            // Campo: Usuarios asignados
             OutlinedTextField(
-                value = "",
+                value = usuariosSeleccionados.joinToString(", ") { it.nombre },
                 onValueChange = {},
                 label = { Text("Usuarios asignados", color = Color.White) },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.White) },
                 trailingIcon = {
-                    IconButton(onClick = { /* Acción para desplegar la lista de usuarios */ }) {
+                    IconButton(onClick = { mostrarVentanaAsignados = true }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowDropDown, // Flecha hacia abajo
-                            contentDescription = "Desplegar lista de usuarios",
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Ver usuarios asignados",
                             tint = Color.White
                         )
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = false, // Deshabilita la edición del campo
-                readOnly = true, // Hace el campo de solo lectura
+                enabled = false,
+                readOnly = true,
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF2A3C53),
                     unfocusedContainerColor = Color(0xFF2A3C53),
@@ -225,9 +284,9 @@ fun NuevoHorarioScreen() {
                     unfocusedTextColor = Color.White,
                     focusedIndicatorColor = Color.White,
                     unfocusedIndicatorColor = Color.Gray,
-                    disabledTextColor = Color.White, // Color del texto cuando está deshabilitado
-                    disabledContainerColor = Color(0xFF2A3C53), // Color del contenedor cuando está deshabilitado
-                    disabledIndicatorColor = Color.Gray // Color del indicador cuando está deshabilitado
+                    disabledTextColor = Color.White,
+                    disabledContainerColor = Color(0xFF2A3C53),
+                    disabledIndicatorColor = Color.Gray
                 )
             )
 
@@ -335,20 +394,113 @@ fun NuevoHorarioScreen() {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
-                    onClick = {},
+                    onClick = {
+                        limpiarCampos()
+                        mostrarMensaje("Se canceló con éxito")
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A446D))
                 ) {
                     Text("Cancelar", color = Color.White)
                 }
 
                 Button(
-                    onClick = {},
+                    onClick = {
+                        limpiarCampos()
+                        mostrarMensaje("Se guardó con éxito")
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A446D))
                 ) {
                     Text("Guardar", color = Color.White)
                 }
             }
         }
+
+        // Overlay para las ventanas
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            // Overlay semi-transparente que bloquea los toques
+            if (mostrarVentanaSugerencias || mostrarVentanaAsignados) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .clickable(enabled = false) { }
+                )
+            }
+
+            // Ventana de sugerencias de usuarios
+            if (mostrarVentanaSugerencias) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(y = 283.dp)
+                ) {
+                    VentanaSugerenciasUsuarios(
+                        usuarios = usuariosSugeridos,
+                        onSeleccionar = { index ->
+                            val usuario = usuariosSugeridos[index]
+                            if (usuario.seleccionado) {
+                                usuariosSeleccionados = usuariosSeleccionados - usuario
+                            } else {
+                                usuariosSeleccionados = usuariosSeleccionados + usuario
+                            }
+                            usuariosSugeridos = usuariosSugeridos.mapIndexed { i, u ->
+                                if (i == index) u.copy(seleccionado = !u.seleccionado) else u
+                            }
+                        },
+                        onDismiss = { mostrarVentanaSugerencias = false }
+                    )
+                }
+            }
+
+            // Ventana de usuarios asignados
+            if (mostrarVentanaAsignados) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(y = 360.dp)
+                ) {
+                    VentanaUsuariosAsignados(
+                        usuarios = usuariosSeleccionados,
+                        onEliminar = { index ->
+                            val usuario = usuariosSeleccionados[index]
+                            usuariosSeleccionados = usuariosSeleccionados - usuario
+                            usuariosSugeridos = usuariosSugeridos.map { u ->
+                                if (u.nombre == usuario.nombre) u.copy(seleccionado = false) else u
+                            }
+                        },
+                        onCerrar = { mostrarVentanaAsignados = false }
+                    )
+                }
+            }
+        }
+
+        // Agregar el SnackbarHost con estilo personalizado
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp),
+            snackbar = { snackbarData: SnackbarData ->
+                Snackbar(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    containerColor = Color(0xFF2A3C53),
+                    contentColor = Color.White,
+                    action = null
+                ) {
+                    Text(
+                        text = snackbarData.visuals.message,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        )
 
         // Navegación
         NavHost(navController = navController, startDestination = "nuevo_horario") {
@@ -368,6 +520,9 @@ fun NuevoHorarioScreen() {
                     onDismiss = { navController.popBackStack() },
                     onComplete = { navController.popBackStack("nuevo_horario", inclusive = false) }
                 )
+            }
+            composable("notificaciones") {
+                NotificacionesUI(navController = navController)
             }
         }
     }

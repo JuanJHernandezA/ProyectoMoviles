@@ -30,9 +30,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calendapp.R
+import androidx.navigation.NavHostController
 
 @Composable
-fun CentroNotificacionesScreen() {
+fun NotificacionesUI(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -67,7 +68,7 @@ fun CentroNotificacionesScreen() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Botón de retroceder
-            IconButton(onClick = { /* Acción para retroceder */ }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Volver",
