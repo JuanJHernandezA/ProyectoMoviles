@@ -50,14 +50,7 @@ class LoginViewModel : ViewModel() {
                         .get()
                         .await()
 
-                    val storedEmail = document.getString("correo")
-                    if (storedEmail != email) {
-                        _loginState.value = _loginState.value.copy(
-                            isLoading = false,
-                            error = "Error de autenticación: correo no coincide"
-                        )
-                        return@launch
-                    }
+                    
 
                     val role = document.getString("rol")
                     if (role == null) {
