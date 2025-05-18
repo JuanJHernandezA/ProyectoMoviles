@@ -1,36 +1,34 @@
 package com.example.calendapp.notificaciones.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.calendapp.notificaciones.model.Notificacion
-import com.example.calendapp.notificaciones.model.NotificacionesEjemplo
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class NotificacionesViewModel : ViewModel() {
-    var notificaciones by mutableStateOf(NotificacionesEjemplo.notificaciones)
-        private set
+    private val db = FirebaseFirestore.getInstance()
+    private val _notificaciones = MutableStateFlow<List<Notificacion>>(emptyList())
+    val notificaciones: StateFlow<List<Notificacion>> = _notificaciones
 
-    fun marcarComoLeida(id: Int) {
-        notificaciones = notificaciones.map { notificacion ->
-            if (notificacion.id == id) {
-                notificacion.copy(leida = true)
-            } else {
-                notificacion
-            }
-        }
-    }
+    fun cargarNotificaciones(cedula: String) {
+        viewModelScope.launch {
+            try {
+                val snapshot = db.collection("notificaciones")
+                    .whereEqualTo("cedulaEmpleado", cedula)
+                    .get()
+                    .await()
 
-    fun eliminarNotificacion(id: Int) {
-        notificaciones = notificaciones.filter { it.id != id }
-    }
-
-    fun filtrarNotificaciones(filtro: String) {
-        if (filtro.isEmpty()) {
-            notificaciones = NotificacionesEjemplo.notificaciones
-        } else {
-            notificaciones = NotificacionesEjemplo.notificaciones.filter {
-                it.mensaje.contains(filtro, ignoreCase = true)
+                val notificacionesList = snapshot.documents.mapNotNull { doc ->
+                    val notificacion = doc.toObject(Notificacion::class.java)
+                    notificacion?.copy(id = doc.id)
+                }
+                _notificaciones.value = notificacionesList
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

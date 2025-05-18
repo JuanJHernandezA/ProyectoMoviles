@@ -5,10 +5,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.navigation.compose.NavHost
-import com.example.calendapp.login.Login
-import com.example.calendapp.login.LoginScreen
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.calendapp.login.LoginScreen
+import com.example.calendapp.login.LoginViewModel
 import com.example.calendapp.administrador.AdministradorScreen
 import com.example.calendapp.deleteUser.DeleteUserScreen
 import com.example.calendapp.empleado.EmpleadoScreen
@@ -16,9 +21,8 @@ import com.example.calendapp.agregar_calendario.view.AgregarCalendarioUI
 import com.example.calendapp.agregar_calendario.view.FrecuenciaDialog
 import com.example.calendapp.agregar_calendario.view.PersonalizacionFrecuenciaDialog
 import com.example.calendapp.agregar_calendario.viewmodel.AgregarCalendarioViewModel
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import com.example.calendapp.notificaciones.view.NotificacionesUI
+import com.example.calendapp.config.UserViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,14 +33,33 @@ class MainActivity : ComponentActivity() {
                 val showFrecuenciaDialog = remember { mutableStateOf(false) }
                 val showPersonalizacionDialog = remember { mutableStateOf(false) }
                 val viewModel = remember { AgregarCalendarioViewModel() }
+                val userViewModel = remember { UserViewModel() }
 
                 NavHost(navController, startDestination = "login") {
-                    composable("login") { LoginScreen(onLoginSuccess = { navController.navigate("administrador") }) }
+                    composable("login") { 
+                        val loginViewModel: LoginViewModel = viewModel()
+                        val loginState by loginViewModel.loginState.collectAsState()
+                        
+                        LoginScreen(
+                            viewModel = loginViewModel,
+                            onLoginSuccess = { 
+                                userViewModel.updateUser(
+                                    loginState.userName,
+                                    loginState.userRole,
+                                    loginState.cedula
+                                )
+                                navController.navigate("administrador") 
+                            }
+                        ) 
+                    }
                     composable("administrador") {
                         AdministradorScreen(navController)
                     }
                     composable("notificaciones") {
-                        NotificacionesUI(navController)
+                        NotificacionesUI(
+                            navController = navController,
+                            userViewModel = userViewModel
+                        )
                     }
                     composable("agregar_usuario") {
                         // AgregarUsuarioScreen(navController)
@@ -45,6 +68,7 @@ class MainActivity : ComponentActivity() {
                         AgregarCalendarioUI(
                             navController = navController,
                             viewModel = viewModel,
+                            userViewModel = userViewModel,
                             onFrecuenciaClick = {
                                 showFrecuenciaDialog.value = true
                             }
