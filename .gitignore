@@ -1,0 +1,19 @@
+# Sistema y entorno
+.DS_Store
+Thumbs.db
+
+# Archivos de Android Studio/IntelliJ
+.idea/
+*.iml
+
+# Archivos de Gradle
+.gradle/
+local.properties
+*.lock
+
+# Carpetas de build
+/build/
+*/build/
+
+# Logs y temporales
+*.log
