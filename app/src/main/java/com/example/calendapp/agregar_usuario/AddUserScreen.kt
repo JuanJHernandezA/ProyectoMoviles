@@ -1,4 +1,4 @@
-package com.example.calendapp.ui.theme
+package com.example.calendapp.agregar_usuario
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -148,7 +147,7 @@ fun AddUserFormField(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun AddUserScreenPreview() {
-    com.example.calendapp.ui.theme.CalendappTheme {
+    CalendappTheme {
         AddUserScreen()
     }
 }

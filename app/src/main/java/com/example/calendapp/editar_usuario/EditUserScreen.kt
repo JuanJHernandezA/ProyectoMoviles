@@ -1,4 +1,4 @@
-package com.example.calendapp.ui.theme
+package com.example.calendapp.editar_usuario
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -23,6 +23,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calendapp.R
+import com.example.calendapp.ui.theme.AccentColor
+import com.example.calendapp.ui.theme.BackgroundColor
+import com.example.calendapp.ui.theme.BannerBackground
+import com.example.calendapp.ui.theme.Border
+import com.example.calendapp.ui.theme.ButtonBackground
+import com.example.calendapp.ui.theme.CalendappTheme
+import com.example.calendapp.ui.theme.White
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
