@@ -19,81 +19,59 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.calendapp.R
-import com.example.calendapp.ui.theme.AccentColor
-import com.example.calendapp.ui.theme.BackgroundColor
-import com.example.calendapp.ui.theme.BannerBackground
-import com.example.calendapp.ui.theme.Border
-import com.example.calendapp.ui.theme.ButtonBackground
-import com.example.calendapp.ui.theme.CalendappTheme
-import com.example.calendapp.ui.theme.White
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.example.calendapp.ui.theme.*
 
 @Composable
-fun EditUserScreen(onBackClick: () -> Unit = {}) {
+fun EditUserScreen(
+    viewModel: EditUserViewModel = viewModel(),
+    onBackClick: () -> Unit = {}
+) {
+    val userState by viewModel.userState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val db = Firebase.firestore
 
-    // Estados del formulario
-    val email = remember { mutableStateOf("") }
-    val password = remember { mutableStateOf("") }
-    val confirmPassword = remember { mutableStateOf("") }
-    val nombre = remember { mutableStateOf("") }
-    val apellido = remember { mutableStateOf("") }
-    val celular = remember { mutableStateOf("") }
-    val genero = remember { mutableStateOf("") }
+    LaunchedEffect(userState.isSuccess) {
+        if (userState.isSuccess) {
+            Toast.makeText(context, "Usuario actualizado exitosamente", Toast.LENGTH_SHORT).show()
+            onBackClick()
+            viewModel.resetState()
+        }
+    }
 
     EditUserScreenContent(
-        email = email,
-        password = password,
-        confirmPassword = confirmPassword,
-        nombre = nombre,
-        apellido = apellido,
-        celular = celular,
-        genero = genero,
-        onAddClick = {
-            if (password.value != confirmPassword.value) {
-                Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
-                return@EditUserScreenContent
-            }
-
-            val user = hashMapOf(
-                "email" to email.value,
-                "password" to password.value,
-                "nombre" to nombre.value,
-                "apellido" to apellido.value,
-                "celular" to celular.value,
-                "genero" to genero.value
-            )
-
-            db.collection("usuarios")
-                .add(user)
-                .addOnSuccessListener {
-                    Toast.makeText(context, "Usuario agregado exitosamente", Toast.LENGTH_SHORT).show()
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-        },
+        email = userState.email,
+        password = userState.password,
+        confirmPassword = userState.confirmPassword,
+        nombre = userState.nombre,
+        apellido = userState.apellido,
+        telefono = userState.telefono,
+        genero = userState.genero,
+        isLoading = userState.isLoading,
+        error = userState.error,
+        onFieldChanged = viewModel::onFieldChanged,
+        onUpdateClick = { viewModel.updateUser() },
         onBackClick = onBackClick
     )
 }
 
 @Composable
 fun EditUserScreenContent(
-    email: MutableState<String>,
-    password: MutableState<String>,
-    confirmPassword: MutableState<String>,
-    nombre: MutableState<String>,
-    apellido: MutableState<String>,
-    celular: MutableState<String>,
-    genero: MutableState<String>,
-    onAddClick: () -> Unit,
-    onBackClick: () -> Unit = {}
+    email: String,
+    password: String,
+    confirmPassword: String,
+    nombre: String,
+    apellido: String,
+    telefono: String,
+    genero: String,
+    isLoading: Boolean,
+    error: String?,
+    onFieldChanged: (String, String) -> Unit,
+    onUpdateClick: () -> Unit,
+    onBackClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -114,7 +92,7 @@ fun EditUserScreenContent(
                 Icon(
                     painter = painterResource(id = R.drawable.arrow_back),
                     contentDescription = "Botón de regreso",
-                    modifier = Modifier.size(240.dp),
+                    modifier = Modifier.size(24.dp),
                     tint = White
                 )
             }
@@ -128,8 +106,8 @@ fun EditUserScreenContent(
             )
 
             Column(modifier = Modifier.padding(start = 16.dp)) {
-                Text(text = "Nombre usuario", fontSize = 20.sp, color = White)
-                Text(text = "Rol", fontSize = 14.sp, color = AccentColor)
+                Text(text = nombre, fontSize = 20.sp, color = White)
+                Text(text = "Usuario", fontSize = 14.sp, color = AccentColor)
             }
         }
 
@@ -144,22 +122,76 @@ fun EditUserScreenContent(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            EditUserFormField("Correo electrónico", email.value, { email.value = it }, KeyboardType.Email)
-            EditUserFormField("Contraseña", password.value, { password.value = it }, KeyboardType.Password, isPassword = true)
-            EditUserFormField("Confirmación de contraseña", confirmPassword.value, { confirmPassword.value = it }, KeyboardType.Password, isPassword = true)
-            EditUserFormField("Nombre", nombre.value, { nombre.value = it }, KeyboardType.Text)
-            EditUserFormField("Apellido", apellido.value, { apellido.value = it }, KeyboardType.Text)
-            EditUserFormField("Número de celular", celular.value, { celular.value = it }, KeyboardType.Phone)
-            EditUserFormField("Género", genero.value, { genero.value = it }, KeyboardType.Text)
+            EditUserFormField(
+                label = "Correo electrónico",
+                value = email,
+                onValueChange = { onFieldChanged("email", it) },
+                keyboardType = KeyboardType.Email,
+                enabled = false
+            )
+            EditUserFormField(
+                label = "Contraseña",
+                value = password,
+                onValueChange = { onFieldChanged("password", it) },
+                keyboardType = KeyboardType.Password,
+                isPassword = true
+            )
+            EditUserFormField(
+                label = "Confirmación de contraseña",
+                value = confirmPassword,
+                onValueChange = { onFieldChanged("confirmPassword", it) },
+                keyboardType = KeyboardType.Password,
+                isPassword = true
+            )
+            EditUserFormField(
+                label = "Nombre",
+                value = nombre,
+                onValueChange = { onFieldChanged("nombre", it) },
+                keyboardType = KeyboardType.Text
+            )
+            EditUserFormField(
+                label = "Apellido",
+                value = apellido,
+                onValueChange = { onFieldChanged("apellido", it) },
+                keyboardType = KeyboardType.Text
+            )
+            EditUserFormField(
+                label = "Número de teléfono",
+                value = telefono,
+                onValueChange = { onFieldChanged("telefono", it) },
+                keyboardType = KeyboardType.Phone
+            )
+            EditUserFormField(
+                label = "Género",
+                value = genero,
+                onValueChange = { onFieldChanged("genero", it) },
+                keyboardType = KeyboardType.Text
+            )
+
+            error?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
 
             Button(
-                onClick = onAddClick,
+                onClick = onUpdateClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ButtonBackground)
+                colors = ButtonDefaults.buttonColors(containerColor = ButtonBackground),
+                enabled = !isLoading
             ) {
-                Text("Guardar", color = White)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = White
+                    )
+                } else {
+                    Text("Guardar", color = White)
+                }
             }
         }
     }
@@ -171,7 +203,8 @@ fun EditUserFormField(
     value: String,
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false
+    isPassword: Boolean = false,
+    enabled: Boolean = true
 ) {
     Text(
         text = label,
@@ -185,15 +218,16 @@ fun EditUserFormField(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 4.dp),
-        textStyle = TextStyle(color = White), // 👈 Color del texto dentro del campo
+        textStyle = TextStyle(color = White),
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        enabled = enabled,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Border,
             unfocusedBorderColor = White.copy(alpha = 0.5f),
             cursorColor = Border,
-            focusedTextColor = White,       // 👈 Asegura el color cuando está enfocado
-            unfocusedTextColor = White,     // 👈 Asegura el color cuando no está enfocado
+            focusedTextColor = White,
+            unfocusedTextColor = White,
             focusedLabelColor = ButtonBackground,
             unfocusedLabelColor = White.copy(alpha = 0.5f)
         )
@@ -201,20 +235,3 @@ fun EditUserFormField(
 }
 
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun EditUserScreenPreview() {
-    CalendappTheme {
-        EditUserScreenContent(
-            email = remember { mutableStateOf("correo@ejemplo.com") },
-            password = remember { mutableStateOf("123456") },
-            confirmPassword = remember { mutableStateOf("123456") },
-            nombre = remember { mutableStateOf("Marlon") },
-            apellido = remember { mutableStateOf("Astudillo") },
-            celular = remember { mutableStateOf("3001234567") },
-            genero = remember { mutableStateOf("Masculino") },
-            onAddClick = {},
-            onBackClick = {}
-        )
-    }
-}

@@ -23,6 +23,7 @@ import com.example.calendapp.agregar_calendario.view.PersonalizacionFrecuenciaDi
 import com.example.calendapp.agregar_calendario.viewmodel.AgregarCalendarioViewModel
 import com.example.calendapp.notificaciones.view.NotificacionesUI
 import com.example.calendapp.config.UserViewModel
+import com.example.calendapp.editar_usuario.EditUserScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,7 +103,9 @@ class MainActivity : ComponentActivity() {
                         DeleteUserScreen(navController)
                     }
                     composable("editar_perfil") {
-                        // EditarPerfilScreen(navController)
+                        EditUserScreen(
+                            onBackClick = { navController.navigateUp() }
+                        )
                     }
                     composable("empleado") {
                         EmpleadoScreen(navController)
