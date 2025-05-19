@@ -2,16 +2,18 @@ package com.example.calendapp.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.calendapp.config.FirebaseConfig
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class LoginViewModel : ViewModel() {
+    private val auth = FirebaseAuth.getInstance()
+    private val db = FirebaseFirestore.getInstance()
     private val _loginState = MutableStateFlow(LoginState())
-    val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
+    val loginState: StateFlow<LoginState> = _loginState
 
     fun onEmailChanged(newEmail: String) {
         _loginState.value = _loginState.value.copy(email = newEmail)
@@ -40,39 +42,21 @@ class LoginViewModel : ViewModel() {
                     return@launch
                 }
 
-                val authResult = FirebaseConfig.auth.signInWithEmailAndPassword(email, password).await()
-                val uid = authResult.user?.uid
-
-                if (uid != null) {
-                    val document = FirebaseConfig.firestore
-                        .collection(FirebaseConfig.USERS_COLLECTION)
-                        .document(uid)
-                        .get()
-                        .await()
-
+                val result = auth.signInWithEmailAndPassword(email, password).await()
+                val user = result.user
+                
+                if (user != null) {
+                    val userDoc = db.collection("users").document(user.uid).get().await()
+                    val nombre = userDoc.getString("nombre")
+                    val rol = userDoc.getString("rol")
+                    val cedula = userDoc.getString("cedula")
                     
-
-                    val role = document.getString("rol")
-                    if (role == null) {
-                        _loginState.value = _loginState.value.copy(
-                            isLoading = false,
-                            error = "Error: usuario sin rol asignado"
-                        )
-                        return@launch
-                    }
-
-                    if (role != "admin" && role != "usuario") {
-                        _loginState.value = _loginState.value.copy(
-                            isLoading = false,
-                            error = "Error: rol de usuario no válido"
-                        )
-                        return@launch
-                    }
-
                     _loginState.value = _loginState.value.copy(
                         isLoading = false,
                         isSuccess = true,
-                        userRole = role
+                        userName = nombre,
+                        userRole = rol,
+                        cedula = cedula
                     )
                 } else {
                     _loginState.value = _loginState.value.copy(

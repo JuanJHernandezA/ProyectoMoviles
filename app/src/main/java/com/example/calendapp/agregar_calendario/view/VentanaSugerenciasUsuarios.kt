@@ -20,13 +20,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calendapp.agregar_calendario.model.UsuarioSugerido
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.calendapp.agregar_calendario.model.Usuario
+import com.example.calendapp.agregar_calendario.viewmodel.AgregarCalendarioViewModel
 
 @Composable
 fun VentanaSugerenciasUsuarios(
-    usuarios: List<UsuarioSugerido>,
+    usuarios: List<Usuario>,
     onSeleccionar: (Int) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    viewModel: AgregarCalendarioViewModel
 ) {
     Card(
         modifier = Modifier
@@ -36,15 +39,7 @@ fun VentanaSugerenciasUsuarios(
                 width = 1.dp,
                 color = Color.White,
                 shape = RoundedCornerShape(16.dp)
-            )
-            .pointerInput(Unit) {
-                // Consumir todos los eventos de entrada para evitar que pasen a elementos subyacentes
-                awaitPointerEventScope {
-                    while (true) {
-                        awaitPointerEvent()
-                    }
-                }
-            },
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF2A3C53)
@@ -80,15 +75,33 @@ fun VentanaSugerenciasUsuarios(
 
             // Lista de usuarios
             LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(usuarios) { usuario ->
                     UsuarioSugeridoItem(
                         usuario = usuario,
-                        onClick = { onSeleccionar(usuarios.indexOf(usuario)) }
+                        onClick = { onSeleccionar(usuarios.indexOf(usuario)) },
+                        viewModel = viewModel
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Botón de confirmar
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF0A446D)
+                )
+            ) {
+                Text("Confirmar selección", color = Color.White)
             }
         }
     }
@@ -96,18 +109,16 @@ fun VentanaSugerenciasUsuarios(
 
 @Composable
 private fun UsuarioSugeridoItem(
-    usuario: UsuarioSugerido,
-    onClick: () -> Unit
+    usuario: Usuario,
+    onClick: () -> Unit,
+    viewModel: AgregarCalendarioViewModel
 ) {
-    var isSelected by remember { mutableStateOf(false) }
+    val isSelected = viewModel.usuariosSeleccionados.value.any { it.id == usuario.id }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                isSelected = !isSelected
-                onClick()
-            },
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) Color(0xFF0A446D) else Color(0xFF1A2530)
         )
@@ -120,7 +131,7 @@ private fun UsuarioSugeridoItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = usuario.nombre,
+                text = "${usuario.nombre} ${usuario.apellido}",
                 color = Color.White,
                 fontSize = 16.sp
             )
