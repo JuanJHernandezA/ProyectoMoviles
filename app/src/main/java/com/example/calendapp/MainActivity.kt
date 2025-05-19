@@ -24,6 +24,7 @@ import com.example.calendapp.agregar_calendario.viewmodel.AgregarCalendarioViewM
 import com.example.calendapp.notificaciones.view.NotificacionesUI
 import com.example.calendapp.config.UserViewModel
 import com.example.calendapp.editar_usuario.EditUserScreen
+import com.example.calendapp.registerUser.AddUserScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +64,9 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("agregar_usuario") {
-                        // AgregarUsuarioScreen(navController)
+                        AddUserScreen(
+                            onUserCreated = { navController.navigateUp() }
+                        )
                     }
                     composable("agregar_turno") {
                         AgregarCalendarioUI(
