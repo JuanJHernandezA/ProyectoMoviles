@@ -5,15 +5,23 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.calendapp.agregar_calendario.model.Calendario
-import com.example.calendapp.agregar_calendario.model.UsuarioSugerido
+import com.example.calendapp.agregar_calendario.model.Usuario
 import com.example.calendapp.agregar_calendario.model.UsuariosSugeridosEjemplo
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class AgregarCalendarioViewModel : ViewModel() {
+    private val db = FirebaseFirestore.getInstance()
+    
     // Estado para los campos de entrada
     val nombreUsuario = mutableStateOf("")
-    val horaInicio = mutableStateOf("Inicio")
-    val horaFin = mutableStateOf("Fin")
+    val horaInicio = mutableStateOf("00:00")
+    val horaFin = mutableStateOf("00:00")
     val ubicacion = mutableStateOf("")
     val descripcion = mutableStateOf("")
     val frecuencia = mutableStateOf("")
@@ -23,105 +31,102 @@ class AgregarCalendarioViewModel : ViewModel() {
     val mostrarVentanaAsignados = mutableStateOf(false)
 
     // Listas de usuarios
-    val usuariosSeleccionados = mutableStateListOf<UsuarioSugerido>()
-    val usuariosSugeridos = UsuariosSugeridosEjemplo.lista
+    private val _usuariosSugeridos = MutableStateFlow<List<Usuario>>(emptyList())
+    val usuariosSugeridos: StateFlow<List<Usuario>> = _usuariosSugeridos
+
+    val usuariosSeleccionados = mutableStateOf<List<Usuario>>(emptyList())
 
     init {
         // Inicialización de valores por defecto
         limpiarCampos()
     }
 
+    fun buscarUsuarios(query: String) {
+        viewModelScope.launch {
+            try {
+                if (query.isEmpty()) {
+                    _usuariosSugeridos.value = emptyList()
+                    return@launch
+                }
+
+                val snapshot = db.collection("users")
+                    .whereEqualTo("rol", "usuario")
+                    .get()
+                    .await()
+
+                val usuarios = snapshot.documents.mapNotNull { doc ->
+                    val nombre = doc.getString("nombre") ?: return@mapNotNull null
+                    val apellido = doc.getString("apellido") ?: return@mapNotNull null
+                    val rol = doc.getString("rol") ?: return@mapNotNull null
+                    
+                    Usuario(
+                        id = doc.id,
+                        nombre = nombre,
+                        apellido = apellido,
+                        rol = rol
+                    )
+                }.filter { usuario ->
+                    val nombreCompleto = "${usuario.nombre} ${usuario.apellido}".lowercase()
+                    nombreCompleto.contains(query.lowercase())
+                }
+
+                _usuariosSugeridos.value = usuarios
+                mostrarVentanaSugerencias.value = usuarios.isNotEmpty()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     // Métodos para actualizar el estado
     fun actualizarNombreUsuario(nuevoNombre: String) {
-        try {
-            nombreUsuario.value = nuevoNombre
-            mostrarVentanaSugerencias.value = nuevoNombre.isNotEmpty()
-        } catch (e: Exception) {
-            // Manejo de error silencioso
-        }
+        nombreUsuario.value = nuevoNombre
+        buscarUsuarios(nuevoNombre)
     }
 
     fun actualizarHoraInicio(nuevaHora: String) {
-        try {
-            horaInicio.value = nuevaHora
-        } catch (e: Exception) {
-            // Manejo de error silencioso
-        }
+        horaInicio.value = nuevaHora
     }
 
     fun actualizarHoraFin(nuevaHora: String) {
-        try {
-            horaFin.value = nuevaHora
-        } catch (e: Exception) {
-            // Manejo de error silencioso
-        }
+        horaFin.value = nuevaHora
     }
 
     fun actualizarUbicacion(nuevaUbicacion: String) {
-        try {
-            ubicacion.value = nuevaUbicacion
-        } catch (e: Exception) {
-            // Manejo de error silencioso
-        }
+        ubicacion.value = nuevaUbicacion
     }
 
     fun actualizarDescripcion(nuevaDescripcion: String) {
-        try {
-            descripcion.value = nuevaDescripcion
-        } catch (e: Exception) {
-            // Manejo de error silencioso
-        }
+        descripcion.value = nuevaDescripcion
     }
 
     fun actualizarFrecuencia(nuevaFrecuencia: String) {
-        try {
-            frecuencia.value = nuevaFrecuencia
-        } catch (e: Exception) {
-            // Manejo de error silencioso
-        }
+        frecuencia.value = nuevaFrecuencia
     }
 
     // Métodos para manejar usuarios
     fun seleccionarUsuario(index: Int) {
-        try {
-            if (index in usuariosSugeridos.indices) {
-                val usuario = usuariosSugeridos[index]
-                if (!usuariosSeleccionados.contains(usuario)) {
-                    usuariosSeleccionados.add(usuario)
-                } else {
-                    usuariosSeleccionados.remove(usuario)
-                }
-                // Ya no cerramos la ventana de sugerencias
-                // mostrarVentanaSugerencias.value = false
-            }
-        } catch (e: Exception) {
-            // Manejo de error silencioso
+        val usuario = _usuariosSugeridos.value.getOrNull(index) ?: return
+        if (!usuariosSeleccionados.value.any { it.id == usuario.id }) {
+            usuariosSeleccionados.value = usuariosSeleccionados.value + usuario
         }
+        mostrarVentanaSugerencias.value = false
+        nombreUsuario.value = ""
     }
 
     fun eliminarUsuario(index: Int) {
-        try {
-            if (index in usuariosSeleccionados.indices) {
-                usuariosSeleccionados.removeAt(index)
-            }
-        } catch (e: Exception) {
-            // Manejo de error silencioso
-        }
+        usuariosSeleccionados.value = usuariosSeleccionados.value.filterIndexed { i, _ -> i != index }
     }
 
     // Método para limpiar todos los campos
     fun limpiarCampos() {
-        try {
-            nombreUsuario.value = ""
-            horaInicio.value = "Inicio"
-            horaFin.value = "Fin"
-            ubicacion.value = ""
-            descripcion.value = ""
-            frecuencia.value = ""
-            usuariosSeleccionados.clear()
-        } catch (e: Exception) {
-            // Manejo de error silencioso
-        }
+        nombreUsuario.value = ""
+        horaInicio.value = "00:00"
+        horaFin.value = "00:00"
+        ubicacion.value = ""
+        descripcion.value = ""
+        frecuencia.value = ""
+        usuariosSeleccionados.value = emptyList()
     }
 
     // Método para guardar el calendario
@@ -135,14 +140,14 @@ class AgregarCalendarioViewModel : ViewModel() {
                 ubicacion = ubicacion.value,
                 descripcion = descripcion.value,
                 frecuencia = frecuencia.value,
-                usuarios = usuariosSeleccionados
+                usuarios = usuariosSeleccionados.value
             )
         } catch (e: Exception) {
             Calendario(
                 id = 0,
                 nombre = "",
-                horaInicio = "Inicio",
-                horaFin = "Fin",
+                horaInicio = "00:00",
+                horaFin = "00:00",
                 ubicacion = "",
                 descripcion = "",
                 frecuencia = "",

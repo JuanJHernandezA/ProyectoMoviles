@@ -20,11 +20,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calendapp.agregar_calendario.model.UsuarioSugerido
+import com.example.calendapp.agregar_calendario.model.Usuario
 
 @Composable
 fun VentanaSugerenciasUsuarios(
-    usuarios: List<UsuarioSugerido>,
+    usuarios: List<Usuario>,
     onSeleccionar: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -96,7 +96,7 @@ fun VentanaSugerenciasUsuarios(
 
 @Composable
 private fun UsuarioSugeridoItem(
-    usuario: UsuarioSugerido,
+    usuario: Usuario,
     onClick: () -> Unit
 ) {
     var isSelected by remember { mutableStateOf(false) }
@@ -120,7 +120,7 @@ private fun UsuarioSugeridoItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = usuario.nombre,
+                text = "${usuario.nombre} ${usuario.apellido}",
                 color = Color.White,
                 fontSize = 16.sp
             )

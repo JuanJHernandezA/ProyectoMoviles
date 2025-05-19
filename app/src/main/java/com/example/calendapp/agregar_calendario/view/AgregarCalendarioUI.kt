@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.calendapp.R
@@ -47,6 +48,7 @@ fun AgregarCalendarioUI(
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val userState by userViewModel.userState.collectAsState()
+    val usuariosSugeridos by viewModel.usuariosSugeridos.collectAsState()
 
     // TimePickerDialogs
     val timePickerInicio = TimePickerDialog(
@@ -218,14 +220,41 @@ fun AgregarCalendarioUI(
                             focusedIndicatorColor = Color.White,
                             unfocusedIndicatorColor = Color.Gray,
                             focusedLabelColor = Color.Gray,
-                            unfocusedLabelColor = Color.Gray
+                            unfocusedLabelColor = Color.Gray,
+                            disabledTextColor = Color.White,
+                            disabledContainerColor = Color(0xFF2A3C53),
+                            disabledIndicatorColor = Color.Gray
                         )
                     )
+
+                    // Mostrar sugerencias si hay usuarios sugeridos
+                    if (viewModel.mostrarVentanaSugerencias.value && usuariosSugeridos.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .offset(y = 60.dp)
+                                .zIndex(1f)
+                                .pointerInput(Unit) {
+                                    awaitPointerEventScope {
+                                        while (true) {
+                                            awaitPointerEvent()
+                                        }
+                                    }
+                                }
+                        ) {
+                            VentanaSugerenciasUsuarios(
+                                usuarios = usuariosSugeridos,
+                                onSeleccionar = { index -> viewModel.seleccionarUsuario(index) },
+                                onDismiss = { viewModel.mostrarVentanaSugerencias.value = false }
+                            )
+                        }
+                    }
                 }
 
                 // Campo: Usuarios asignados
                 OutlinedTextField(
-                    value = viewModel.usuariosSeleccionados.joinToString(", ") { it.nombre },
+                    value = viewModel.usuariosSeleccionados.value.joinToString(", ") { "${it.nombre} ${it.apellido}" },
                     onValueChange = {},
                     label = { Text("Usuarios asignados", color = Color.White) },
                     leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.White) },
@@ -248,6 +277,8 @@ fun AgregarCalendarioUI(
                         unfocusedTextColor = Color.White,
                         focusedIndicatorColor = Color.White,
                         unfocusedIndicatorColor = Color.Gray,
+                        focusedLabelColor = Color.Gray,
+                        unfocusedLabelColor = Color.Gray,
                         disabledTextColor = Color.White,
                         disabledContainerColor = Color(0xFF2A3C53),
                         disabledIndicatorColor = Color.Gray
@@ -405,23 +436,6 @@ fun AgregarCalendarioUI(
                 }
             }
 
-            // Ventana de sugerencias de usuarios (posicionada absolutamente)
-            if (viewModel.mostrarVentanaSugerencias.value) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .offset(y = 290.dp) // Ajustado para bajar un poco más
-                        .zIndex(1f)
-                ) {
-                    VentanaSugerenciasUsuarios(
-                        usuarios = viewModel.usuariosSugeridos,
-                        onSeleccionar = { index -> viewModel.seleccionarUsuario(index) },
-                        onDismiss = { viewModel.mostrarVentanaSugerencias.value = false }
-                    )
-                }
-            }
-
             // Ventana de usuarios asignados
             if (viewModel.mostrarVentanaAsignados.value) {
                 Box(
@@ -430,7 +444,7 @@ fun AgregarCalendarioUI(
                         .padding(16.dp)
                 ) {
                     VentanaUsuariosAsignados(
-                        usuarios = viewModel.usuariosSeleccionados,
+                            usuarios = viewModel.usuariosSeleccionados.value,
                         onEliminar = { index -> viewModel.eliminarUsuario(index) },
                         onCerrar = { viewModel.mostrarVentanaAsignados.value = false }
                     )
@@ -447,16 +461,28 @@ fun AgregarCalendarioUI(
 }
 
 @Composable
-fun DrawerItem(text: String, icon: ImageVector, onClick: () -> Unit) {
+private fun DrawerItem(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = text, tint = Color.White)
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(text, color = Color.White)
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(24.dp)
+        )
+        Text(
+            text = text,
+            color = Color.White,
+            modifier = Modifier.padding(start = 16.dp)
+        )
     }
 } 
