@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview()
 @Composable
 fun LoginScreenPreview() {
     LoginScreen(
