@@ -197,21 +197,58 @@ fun AgregarCalendarioUI(
             }
 
             // Contenido principal
-            Column(
-                modifier = Modifier
-                    .padding(top = 220.dp)
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            Box(
+                modifier = Modifier.fillMaxSize()
             ) {
-                // Campo: Nombre del usuario
-                Box {
+                Column(
+                    modifier = Modifier
+                        .padding(top = 220.dp)
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Campo: Nombre del usuario
+                    Box {
+                        OutlinedTextField(
+                            value = viewModel.nombreUsuario.value,
+                            onValueChange = { viewModel.actualizarNombreUsuario(it) },
+                            label = { Text("Escribe el nombre del usuario", color = Color.White) },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFF2A3C53),
+                                unfocusedContainerColor = Color(0xFF2A3C53),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedIndicatorColor = Color.White,
+                                unfocusedIndicatorColor = Color.Gray,
+                                focusedLabelColor = Color.Gray,
+                                unfocusedLabelColor = Color.Gray,
+                                disabledTextColor = Color.White,
+                                disabledContainerColor = Color(0xFF2A3C53),
+                                disabledIndicatorColor = Color.Gray
+                            )
+                        )
+                    }
+
+                    // Campo: Usuarios asignados
                     OutlinedTextField(
-                        value = viewModel.nombreUsuario.value,
-                        onValueChange = { viewModel.actualizarNombreUsuario(it) },
-                        label = { Text("Escribe el nombre del usuario", color = Color.White) },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
+                        value = viewModel.usuariosSeleccionados.value.joinToString(", ") { "${it.nombre} ${it.apellido}" },
+                        onValueChange = {},
+                        label = { Text("Usuarios asignados", color = Color.White) },
+                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.White) },
+                        trailingIcon = {
+                            IconButton(onClick = { viewModel.mostrarVentanaAsignados.value = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Ver usuarios asignados",
+                                    tint = Color.White
+                                )
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
+                        enabled = false,
+                        readOnly = true,
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color(0xFF2A3C53),
                             unfocusedContainerColor = Color(0xFF2A3C53),
@@ -227,109 +264,100 @@ fun AgregarCalendarioUI(
                         )
                     )
 
-                    // Mostrar sugerencias si hay usuarios sugeridos
-                    if (viewModel.mostrarVentanaSugerencias.value && usuariosSugeridos.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .offset(y = 60.dp)
-                                .zIndex(1f)
-                                .pointerInput(Unit) {
-                                    awaitPointerEventScope {
-                                        while (true) {
-                                            awaitPointerEvent()
-                                        }
-                                    }
-                                }
-                        ) {
-                            VentanaSugerenciasUsuarios(
-                                usuarios = usuariosSugeridos,
-                                onSeleccionar = { index -> viewModel.seleccionarUsuario(index) },
-                                onDismiss = { viewModel.mostrarVentanaSugerencias.value = false }
-                            )
-                        }
-                    }
-                }
-
-                // Campo: Usuarios asignados
-                OutlinedTextField(
-                    value = viewModel.usuariosSeleccionados.value.joinToString(", ") { "${it.nombre} ${it.apellido}" },
-                    onValueChange = {},
-                    label = { Text("Usuarios asignados", color = Color.White) },
-                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.White) },
-                    trailingIcon = {
-                        IconButton(onClick = { viewModel.mostrarVentanaAsignados.value = true }) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Ver usuarios asignados",
-                                tint = Color.White
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = false,
-                    readOnly = true,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF2A3C53),
-                        unfocusedContainerColor = Color(0xFF2A3C53),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedIndicatorColor = Color.White,
-                        unfocusedIndicatorColor = Color.Gray,
-                        focusedLabelColor = Color.Gray,
-                        unfocusedLabelColor = Color.Gray,
-                        disabledTextColor = Color.White,
-                        disabledContainerColor = Color(0xFF2A3C53),
-                        disabledIndicatorColor = Color.Gray
+                    // Etiqueta: Franja horaria
+                    Text(
+                        text = "Ingresa la franja horaria",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
-                )
 
-                // Etiqueta: Franja horaria
-                Text(
-                    text = "Ingresa la franja horaria",
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+                    // Campos: Inicio y Fin
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(
+                            onClick = { timePickerInicio.show() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF2A3C53))
+                        ) {
+                            Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
+                            Spacer(Modifier.width(4.dp))
+                            Text(viewModel.horaInicio.value, color = Color.White)
+                        }
 
-                // Campos: Inicio y Fin
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = { timePickerInicio.show() },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF2A3C53))
-                    ) {
-                        Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
-                        Spacer(Modifier.width(4.dp))
-                        Text(viewModel.horaInicio.value, color = Color.White)
+                        OutlinedButton(
+                            onClick = { timePickerFin.show() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF2A3C53))
+                        ) {
+                            Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
+                            Spacer(Modifier.width(4.dp))
+                            Text(viewModel.horaFin.value, color = Color.White)
+                        }
                     }
 
-                    OutlinedButton(
-                        onClick = { timePickerFin.show() },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF2A3C53))
+                    // Campo: Fecha
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { viewModel.mostrarCalendario.value = true }
                     ) {
-                        Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
-                        Spacer(Modifier.width(4.dp))
-                        Text(viewModel.horaFin.value, color = Color.White)
+                        OutlinedTextField(
+                            value = viewModel.fechasSeleccionadas.value.joinToString(", "),
+                            onValueChange = { },
+                            label = { Text("Seleccionar fecha", color = Color.White) },
+                            leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null, tint = Color.White) },
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                            enabled = false,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFF2A3C53),
+                                unfocusedContainerColor = Color(0xFF2A3C53),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedIndicatorColor = Color.White,
+                                unfocusedIndicatorColor = Color.Gray,
+                                disabledTextColor = Color.White,
+                                disabledContainerColor = Color(0xFF2A3C53),
+                                disabledIndicatorColor = Color.Gray
+                            )
+                        )
                     }
-                }
 
-                // Campo: Frecuencia
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onFrecuenciaClick)
-                ) {
+                    // Campo: Frecuencia
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onFrecuenciaClick)
+                    ) {
+                        OutlinedTextField(
+                            value = viewModel.frecuencia.value,
+                            onValueChange = { },
+                            label = { Text("Personalizar frecuencia", color = Color.White) },
+                            leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White) },
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                            enabled = false,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFF2A3C53),
+                                unfocusedContainerColor = Color(0xFF2A3C53),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedIndicatorColor = Color.White,
+                                unfocusedIndicatorColor = Color.Gray,
+                                disabledTextColor = Color.White,
+                                disabledContainerColor = Color(0xFF2A3C53),
+                                disabledIndicatorColor = Color.Gray
+                            )
+                        )
+                    }
+
+                    // Campo: Ubicación
                     OutlinedTextField(
-                        value = viewModel.frecuencia.value,
-                        onValueChange = { },
-                        label = { Text("Personalizar frecuencia", color = Color.White) },
-                        leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White) },
+                        value = viewModel.ubicacion.value,
+                        onValueChange = { viewModel.actualizarUbicacion(it) },
+                        label = { Text("Ubicación", color = Color.White) },
+                        leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White) },
                         modifier = Modifier.fillMaxWidth(),
-                        readOnly = true,
-                        enabled = false,
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color(0xFF2A3C53),
                             unfocusedContainerColor = Color(0xFF2A3C53),
@@ -337,102 +365,109 @@ fun AgregarCalendarioUI(
                             unfocusedTextColor = Color.White,
                             focusedIndicatorColor = Color.White,
                             unfocusedIndicatorColor = Color.Gray,
-                            disabledTextColor = Color.White,
-                            disabledContainerColor = Color(0xFF2A3C53),
-                            disabledIndicatorColor = Color.Gray
+                            focusedLabelColor = Color.Gray,
+                            unfocusedLabelColor = Color.Gray
                         )
                     )
+
+                    // Campo: Descripción
+                    OutlinedTextField(
+                        value = viewModel.descripcion.value,
+                        onValueChange = { viewModel.actualizarDescripcion(it) },
+                        label = { Text("Descripción", color = Color.White) },
+                        leadingIcon = { Icon(Icons.Default.Description, contentDescription = null, tint = Color.White) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFF2A3C53),
+                            unfocusedContainerColor = Color(0xFF2A3C53),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedIndicatorColor = Color.White,
+                            unfocusedIndicatorColor = Color.Gray,
+                            focusedLabelColor = Color.Gray,
+                            unfocusedLabelColor = Color.Gray
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // Botones: Guardar y Cancelar
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Botón Cancelar
+                        Button(
+                            onClick = {
+                                viewModel.limpiarCampos()
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Se canceló con éxito",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF2A3C53)
+                            )
+                        ) {
+                            Text("Cancelar", color = Color.White)
+                        }
+
+                        // Botón Guardar
+                        Button(
+                            onClick = {
+                                viewModel.guardarCalendario()
+                                viewModel.limpiarCampos()
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Se guardó con éxito",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF0A446D)
+                            )
+                        ) {
+                            Text("Guardar", color = Color.White)
+                        }
+                    }
                 }
 
-                // Campo: Ubicación
-                OutlinedTextField(
-                    value = viewModel.ubicacion.value,
-                    onValueChange = { viewModel.actualizarUbicacion(it) },
-                    label = { Text("Ubicación", color = Color.White) },
-                    leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF2A3C53),
-                        unfocusedContainerColor = Color(0xFF2A3C53),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedIndicatorColor = Color.White,
-                        unfocusedIndicatorColor = Color.Gray,
-                        focusedLabelColor = Color.Gray,
-                        unfocusedLabelColor = Color.Gray
-                    )
-                )
-
-                // Campo: Descripción
-                OutlinedTextField(
-                    value = viewModel.descripcion.value,
-                    onValueChange = { viewModel.actualizarDescripcion(it) },
-                    label = { Text("Descripción", color = Color.White) },
-                    leadingIcon = { Icon(Icons.Default.Description, contentDescription = null, tint = Color.White) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF2A3C53),
-                        unfocusedContainerColor = Color(0xFF2A3C53),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedIndicatorColor = Color.White,
-                        unfocusedIndicatorColor = Color.Gray,
-                        focusedLabelColor = Color.Gray,
-                        unfocusedLabelColor = Color.Gray
-                    )
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                // Botones: Guardar y Cancelar
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Botón Cancelar
-                    Button(
-                        onClick = {
-                            viewModel.limpiarCampos()
-                            scope.launch {
-                                snackbarHostState.showSnackbar(
-                                    message = "Se canceló con éxito",
-                                    duration = SnackbarDuration.Short
-                                )
-                            }
-                        },
+                // Mostrar sugerencias si hay usuarios sugeridos
+                if (viewModel.mostrarVentanaSugerencias.value && usuariosSugeridos.isNotEmpty()) {
+                    Box(
                         modifier = Modifier
-                            .weight(1f)
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2A3C53)
-                        )
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .offset(y = 300.dp)
+                            .zIndex(1f)
                     ) {
-                        Text("Cancelar", color = Color.White)
+                        VentanaSugerenciasUsuarios(
+                            usuarios = usuariosSugeridos,
+                            onSeleccionar = { index -> viewModel.seleccionarUsuario(index) },
+                            onDismiss = { viewModel.mostrarVentanaSugerencias.value = false },
+                            viewModel = viewModel
+                        )
                     }
+                }
 
-                    // Botón Guardar
-                    Button(
-                        onClick = {
-                            viewModel.guardarCalendario()
-                            viewModel.limpiarCampos()
-                            scope.launch {
-                                snackbarHostState.showSnackbar(
-                                    message = "Se guardó con éxito",
-                                    duration = SnackbarDuration.Short
-                                )
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF0A446D)
-                        )
-                    ) {
-                        Text("Guardar", color = Color.White)
-                    }
+                // Ventana de calendario
+                if (viewModel.mostrarCalendario.value) {
+                    CalendarioDialog(
+                        fechasSeleccionadas = viewModel.fechasSeleccionadas.value,
+                        onSeleccionarFecha = { fecha -> viewModel.seleccionarFecha(fecha) },
+                        onDismiss = { viewModel.mostrarCalendario.value = false }
+                    )
                 }
             }
 

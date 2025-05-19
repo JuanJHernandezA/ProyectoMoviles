@@ -25,10 +25,12 @@ class AgregarCalendarioViewModel : ViewModel() {
     val ubicacion = mutableStateOf("")
     val descripcion = mutableStateOf("")
     val frecuencia = mutableStateOf("")
+    val fechasSeleccionadas = mutableStateOf<List<String>>(emptyList())
 
     // Estado para las ventanas emergentes
     val mostrarVentanaSugerencias = mutableStateOf(false)
     val mostrarVentanaAsignados = mutableStateOf(false)
+    val mostrarCalendario = mutableStateOf(false)
 
     // Listas de usuarios
     private val _usuariosSugeridos = MutableStateFlow<List<Usuario>>(emptyList())
@@ -81,7 +83,12 @@ class AgregarCalendarioViewModel : ViewModel() {
     // Métodos para actualizar el estado
     fun actualizarNombreUsuario(nuevoNombre: String) {
         nombreUsuario.value = nuevoNombre
-        buscarUsuarios(nuevoNombre)
+        if (nuevoNombre.isNotEmpty()) {
+            buscarUsuarios(nuevoNombre)
+        } else {
+            _usuariosSugeridos.value = emptyList()
+            mostrarVentanaSugerencias.value = false
+        }
     }
 
     fun actualizarHoraInicio(nuevaHora: String) {
@@ -109,13 +116,21 @@ class AgregarCalendarioViewModel : ViewModel() {
         val usuario = _usuariosSugeridos.value.getOrNull(index) ?: return
         if (!usuariosSeleccionados.value.any { it.id == usuario.id }) {
             usuariosSeleccionados.value = usuariosSeleccionados.value + usuario
+        } else {
+            usuariosSeleccionados.value = usuariosSeleccionados.value.filter { it.id != usuario.id }
         }
-        mostrarVentanaSugerencias.value = false
-        nombreUsuario.value = ""
     }
 
     fun eliminarUsuario(index: Int) {
         usuariosSeleccionados.value = usuariosSeleccionados.value.filterIndexed { i, _ -> i != index }
+    }
+
+    fun seleccionarFecha(fecha: String) {
+        if (fechasSeleccionadas.value.contains(fecha)) {
+            fechasSeleccionadas.value = fechasSeleccionadas.value.filter { it != fecha }
+        } else {
+            fechasSeleccionadas.value = fechasSeleccionadas.value + fecha
+        }
     }
 
     // Método para limpiar todos los campos
@@ -127,6 +142,7 @@ class AgregarCalendarioViewModel : ViewModel() {
         descripcion.value = ""
         frecuencia.value = ""
         usuariosSeleccionados.value = emptyList()
+        fechasSeleccionadas.value = emptyList()
     }
 
     // Método para guardar el calendario
@@ -140,7 +156,8 @@ class AgregarCalendarioViewModel : ViewModel() {
                 ubicacion = ubicacion.value,
                 descripcion = descripcion.value,
                 frecuencia = frecuencia.value,
-                usuarios = usuariosSeleccionados.value
+                usuarios = usuariosSeleccionados.value,
+                fechas = fechasSeleccionadas.value
             )
         } catch (e: Exception) {
             Calendario(
@@ -151,7 +168,8 @@ class AgregarCalendarioViewModel : ViewModel() {
                 ubicacion = "",
                 descripcion = "",
                 frecuencia = "",
-                usuarios = emptyList()
+                usuarios = emptyList(),
+                fechas = emptyList()
             )
         }
     }
