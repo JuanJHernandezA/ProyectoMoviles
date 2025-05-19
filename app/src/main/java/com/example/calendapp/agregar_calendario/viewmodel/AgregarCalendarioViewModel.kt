@@ -32,6 +32,10 @@ class AgregarCalendarioViewModel : ViewModel() {
     val mostrarVentanaAsignados = mutableStateOf(false)
     val mostrarCalendario = mutableStateOf(false)
 
+    // Estado para mensajes
+    val mensajeError = mutableStateOf<String?>(null)
+    val mensajeExito = mutableStateOf<String?>(null)
+
     // Listas de usuarios
     private val _usuariosSugeridos = MutableStateFlow<List<Usuario>>(emptyList())
     val usuariosSugeridos: StateFlow<List<Usuario>> = _usuariosSugeridos
@@ -60,12 +64,14 @@ class AgregarCalendarioViewModel : ViewModel() {
                     val nombre = doc.getString("nombre") ?: return@mapNotNull null
                     val apellido = doc.getString("apellido") ?: return@mapNotNull null
                     val rol = doc.getString("rol") ?: return@mapNotNull null
+                    val cedula = doc.getString("cedula") ?: return@mapNotNull null
                     
                     Usuario(
                         id = doc.id,
                         nombre = nombre,
                         apellido = apellido,
-                        rol = rol
+                        rol = rol,
+                        cedula = cedula
                     )
                 }.filter { usuario ->
                     val nombreCompleto = "${usuario.nombre} ${usuario.apellido}".lowercase()
@@ -146,31 +152,69 @@ class AgregarCalendarioViewModel : ViewModel() {
     }
 
     // Método para guardar el calendario
-    fun guardarCalendario(): Calendario {
-        return try {
-            Calendario(
-                id = 0,
-                nombre = nombreUsuario.value,
-                horaInicio = horaInicio.value,
-                horaFin = horaFin.value,
-                ubicacion = ubicacion.value,
-                descripcion = descripcion.value,
-                frecuencia = frecuencia.value,
-                usuarios = usuariosSeleccionados.value,
-                fechas = fechasSeleccionadas.value
-            )
-        } catch (e: Exception) {
-            Calendario(
-                id = 0,
-                nombre = "",
-                horaInicio = "00:00",
-                horaFin = "00:00",
-                ubicacion = "",
-                descripcion = "",
-                frecuencia = "",
-                usuarios = emptyList(),
-                fechas = emptyList()
-            )
+    fun guardarCalendario() {
+        viewModelScope.launch {
+            try {
+                // Validar campos requeridos
+                if (usuariosSeleccionados.value.isEmpty()) {
+                    mensajeError.value = "Debe seleccionar al menos un usuario"
+                    return@launch
+                }
+                if (fechasSeleccionadas.value.isEmpty()) {
+                    mensajeError.value = "Debe seleccionar al menos una fecha"
+                    return@launch
+                }
+                if (descripcion.value.isBlank()) {
+                    mensajeError.value = "Debe ingresar una descripción"
+                    return@launch
+                }
+
+                // Crear el documento del horario
+                val horarioData = hashMapOf(
+                    "descripcion" to descripcion.value,
+                    "horaInicio" to horaInicio.value,
+                    "horaFin" to horaFin.value,
+                    "ubicacion" to ubicacion.value,
+                    "fecha" to com.google.firebase.Timestamp.now(),
+                    "frecuencia" to frecuencia.value,
+                    "fechas" to fechasSeleccionadas.value
+                )
+
+                // Para cada usuario seleccionado, crear el horario y su notificación
+                usuariosSeleccionados.value.forEach { usuario ->
+                    // Crear el horario para este usuario
+                    val horarioRef = db.collection("horarios").document()
+                    val horarioCompleto = horarioData + hashMapOf(
+                        "empleadoId" to usuario.cedula,
+                        "empleado" to "${usuario.nombre} ${usuario.apellido}"
+                    )
+                    horarioRef.set(horarioCompleto).await()
+
+                    // Crear la notificación para este usuario
+                    val notificacionData = hashMapOf(
+                        "cedulaEmpleado" to usuario.cedula,
+                        "descripcion" to descripcion.value,
+                        "fecha" to com.google.firebase.Timestamp.now(),
+                        "tipoNotificacion" to "Nuevo Horario"
+                    )
+                    db.collection("notificaciones").add(notificacionData).await()
+                }
+
+                // Limpiar los campos después de guardar exitosamente
+                limpiarCampos()
+                mensajeExito.value = "Horario guardado exitosamente"
+                mensajeError.value = null
+            } catch (e: Exception) {
+                e.printStackTrace()
+                mensajeError.value = "Error al guardar el horario: ${e.message}"
+                mensajeExito.value = null
+            }
         }
+    }
+
+    // Método para limpiar mensajes
+    fun limpiarMensajes() {
+        mensajeError.value = null
+        mensajeExito.value = null
     }
 } 

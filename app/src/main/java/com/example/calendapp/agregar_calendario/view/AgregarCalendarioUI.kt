@@ -402,6 +402,7 @@ fun AgregarCalendarioUI(
                         Button(
                             onClick = {
                                 viewModel.limpiarCampos()
+                                viewModel.limpiarMensajes()
                                 scope.launch {
                                     snackbarHostState.showSnackbar(
                                         message = "Se canceló con éxito",
@@ -423,12 +424,13 @@ fun AgregarCalendarioUI(
                         Button(
                             onClick = {
                                 viewModel.guardarCalendario()
-                                viewModel.limpiarCampos()
                                 scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Se guardó con éxito",
-                                        duration = SnackbarDuration.Short
-                                    )
+                                    viewModel.mensajeExito.value?.let { mensaje ->
+                                        snackbarHostState.showSnackbar(
+                                            message = mensaje,
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             },
                             modifier = Modifier
@@ -440,6 +442,22 @@ fun AgregarCalendarioUI(
                         ) {
                             Text("Guardar", color = Color.White)
                         }
+                    }
+
+                    // Mostrar mensajes de error o éxito
+                    viewModel.mensajeError.value?.let { mensaje ->
+                        Text(
+                            text = mensaje,
+                            color = Color.Red,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                    viewModel.mensajeExito.value?.let { mensaje ->
+                        Text(
+                            text = mensaje,
+                            color = Color.Green,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
                     }
                 }
 
@@ -489,8 +507,18 @@ fun AgregarCalendarioUI(
             // Snackbar
             SnackbarHost(
                 hostState = snackbarHostState,
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+            ) { data ->
+                Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    containerColor = Color(0xFF0A446D),
+                    contentColor = Color.White
+                ) {
+                    Text(data.visuals.message)
+                }
+            }
         }
     }
 }
