@@ -41,8 +41,8 @@ fun ConfirmarEliminarScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(onClick = {
 
-                    viewModel.deleteUserByEmail(
-                        email = email,
+                    viewModel.deleteUserByCorreo(
+                        correo = email,
 
                         onSuccess = { navController.navigate("confirmado_eliminar") },
                         onFailure = { }
