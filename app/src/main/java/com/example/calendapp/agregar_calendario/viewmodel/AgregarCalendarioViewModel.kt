@@ -24,7 +24,6 @@ class AgregarCalendarioViewModel : ViewModel() {
     val horaFin = mutableStateOf("00:00")
     val ubicacion = mutableStateOf("")
     val descripcion = mutableStateOf("")
-    val frecuencia = mutableStateOf("")
     val fechasSeleccionadas = mutableStateOf<List<String>>(emptyList())
 
     // Estado para las ventanas emergentes
@@ -99,10 +98,25 @@ class AgregarCalendarioViewModel : ViewModel() {
 
     fun actualizarHoraInicio(nuevaHora: String) {
         horaInicio.value = nuevaHora
+        // Validar que la hora de fin no sea anterior a la hora de inicio
+        if (horaFin.value != "00:00" && horaFin.value < nuevaHora) {
+            mensajeError.value = "La hora de finalización no puede ser anterior a la hora de inicio"
+        } else {
+            mensajeError.value = null
+        }
     }
 
     fun actualizarHoraFin(nuevaHora: String) {
+        if (horaInicio.value == "00:00") {
+            mensajeError.value = "Debe ingresar primero la hora de inicio"
+            return
+        }
+        if (nuevaHora < horaInicio.value) {
+            mensajeError.value = "La hora de finalización no puede ser anterior a la hora de inicio"
+            return
+        }
         horaFin.value = nuevaHora
+        mensajeError.value = null
     }
 
     fun actualizarUbicacion(nuevaUbicacion: String) {
@@ -111,10 +125,6 @@ class AgregarCalendarioViewModel : ViewModel() {
 
     fun actualizarDescripcion(nuevaDescripcion: String) {
         descripcion.value = nuevaDescripcion
-    }
-
-    fun actualizarFrecuencia(nuevaFrecuencia: String) {
-        frecuencia.value = nuevaFrecuencia
     }
 
     // Métodos para manejar usuarios
@@ -146,7 +156,6 @@ class AgregarCalendarioViewModel : ViewModel() {
         horaFin.value = "00:00"
         ubicacion.value = ""
         descripcion.value = ""
-        frecuencia.value = ""
         usuariosSeleccionados.value = emptyList()
         fechasSeleccionadas.value = emptyList()
     }
@@ -176,7 +185,6 @@ class AgregarCalendarioViewModel : ViewModel() {
                     "horaFin" to horaFin.value,
                     "ubicacion" to ubicacion.value,
                     "fecha" to com.google.firebase.Timestamp.now(),
-                    "frecuencia" to frecuencia.value,
                     "fechas" to fechasSeleccionadas.value
                 )
 

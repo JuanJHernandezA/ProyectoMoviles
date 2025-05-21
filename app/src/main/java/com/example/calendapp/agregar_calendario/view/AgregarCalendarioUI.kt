@@ -39,8 +39,7 @@ import java.util.*
 fun AgregarCalendarioUI(
     navController: NavHostController,
     viewModel: AgregarCalendarioViewModel = viewModel(),
-    userViewModel: UserViewModel,
-    onFrecuenciaClick: () -> Unit
+    userViewModel: UserViewModel
 ) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
@@ -306,34 +305,6 @@ fun AgregarCalendarioUI(
                             onValueChange = { },
                             label = { Text("Seleccionar fecha", color = Color.White) },
                             leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null, tint = Color.White) },
-                            modifier = Modifier.fillMaxWidth(),
-                            readOnly = true,
-                            enabled = false,
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFF2A3C53),
-                                unfocusedContainerColor = Color(0xFF2A3C53),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedIndicatorColor = Color.White,
-                                unfocusedIndicatorColor = Color.Gray,
-                                disabledTextColor = Color.White,
-                                disabledContainerColor = Color(0xFF2A3C53),
-                                disabledIndicatorColor = Color.Gray
-                            )
-                        )
-                    }
-
-                    // Campo: Frecuencia
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(onClick = onFrecuenciaClick)
-                    ) {
-                        OutlinedTextField(
-                            value = viewModel.frecuencia.value,
-                            onValueChange = { },
-                            label = { Text("Personalizar frecuencia", color = Color.White) },
-                            leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White) },
                             modifier = Modifier.fillMaxWidth(),
                             readOnly = true,
                             enabled = false,
