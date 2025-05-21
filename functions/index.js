@@ -4,23 +4,21 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 exports.deleteUserByAdmin = functions.https.onCall(async (data, context) => {
-  // Validar que quien llama sea admin
-  if (!context.auth || !context.auth.token.admin) {
-    throw new functions.https.HttpsError("permission-denied", "No eres administrador");
-  }
-
-  const email = data.email;
+  console.log("Llamada a deleteUserByAdmin recibida");
+  console.log("Datos recibidos:", data);
+  const correo = data.correo;
 
   try {
-    // Buscar UID por email
-    const userRecord = await admin.auth().getUserByEmail(email);
+    const userRecord = await admin.auth().getUserByEmail(correo);
     const uid = userRecord.uid;
+    console.log(`UID encontrado para ${correo}: ${uid}`);
 
-    // Eliminar usuario
     await admin.auth().deleteUser(uid);
+    console.log(`Usuario ${correo} eliminado de Auth`);
 
-    return { message: `Usuario ${email} eliminado correctamente.` };
+    return {message: `Usuario ${correo} eliminado correctamente.`};
   } catch (error) {
+    console.error("Error al eliminar usuario:", error);
     throw new functions.https.HttpsError("not-found", error.message);
   }
 });
