@@ -20,6 +20,8 @@ local.properties
 
 # Archivos de configuración local
 local.properties
+# Ignorar la línea que contiene 'sdk.dir' en local.properties
+local.properties
 
 # Archivos generados por el IDE
 .idea/

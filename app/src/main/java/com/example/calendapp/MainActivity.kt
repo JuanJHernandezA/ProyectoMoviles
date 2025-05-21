@@ -18,6 +18,8 @@ import com.example.calendapp.administrador.AdministradorScreen
 import com.example.calendapp.deleteUser.DeleteUserScreen
 import com.example.calendapp.empleado.EmpleadoScreen
 import com.example.calendapp.agregar_calendario.view.AgregarCalendarioUI
+import com.example.calendapp.agregar_calendario.view.FrecuenciaDialog
+import com.example.calendapp.agregar_calendario.view.PersonalizacionFrecuenciaDialog
 import com.example.calendapp.agregar_calendario.viewmodel.AgregarCalendarioViewModel
 import com.example.calendapp.notificaciones.view.NotificacionesUI
 import com.example.calendapp.config.UserViewModel
@@ -32,6 +34,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 val navController = rememberNavController()
+                val showFrecuenciaDialog = remember { mutableStateOf(false) }
+                val showPersonalizacionDialog = remember { mutableStateOf(false) }
                 val viewModel = remember { AgregarCalendarioViewModel() }
                 val userViewModel = remember { UserViewModel() }
 
@@ -59,7 +63,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
 
-                            })
+                            }
+                        )
                         
                     }
                     composable("administrador") {
@@ -81,8 +86,35 @@ class MainActivity : ComponentActivity() {
                         AgregarCalendarioUI(
                             navController = navController,
                             viewModel = viewModel,
-                            userViewModel = userViewModel
+                            userViewModel = userViewModel,
+                            onFrecuenciaClick = {
+                                showFrecuenciaDialog.value = true
+                            }
                         )
+
+                        if (showFrecuenciaDialog.value) {
+                            FrecuenciaDialog(
+                                onDismiss = { showFrecuenciaDialog.value = false },
+                                onOptionSelected = { opcion ->
+                                    showFrecuenciaDialog.value = false
+                                    if (opcion == "Personalización...") {
+                                        showPersonalizacionDialog.value = true
+                                    } else {
+                                        viewModel.actualizarFrecuencia(opcion)
+                                    }
+                                }
+                            )
+                        }
+
+                        if (showPersonalizacionDialog.value) {
+                            PersonalizacionFrecuenciaDialog(
+                                onDismiss = { showPersonalizacionDialog.value = false },
+                                onComplete = { frecuencia ->
+                                    showPersonalizacionDialog.value = false
+                                    viewModel.actualizarFrecuencia(frecuencia)
+                                }
+                            )
+                        }
                     }
                     composable("eliminar_usuario") {
                         DeleteUserScreen(navController)
