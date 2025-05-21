@@ -49,7 +49,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    
+    implementation("com.google.firebase:firebase-functions-ktx:20.3.2")
+
+
     // Compose
     implementation("androidx.compose.runtime:runtime:1.6.1")
     implementation("androidx.compose.runtime:runtime-livedata:1.6.1")

@@ -23,6 +23,8 @@ import com.example.calendapp.agregar_calendario.view.PersonalizacionFrecuenciaDi
 import com.example.calendapp.agregar_calendario.viewmodel.AgregarCalendarioViewModel
 import com.example.calendapp.notificaciones.view.NotificacionesUI
 import com.example.calendapp.config.UserViewModel
+import com.example.calendapp.deleteUser.ConfirmadoEliminarScreen
+import com.example.calendapp.deleteUser.ConfirmarEliminarScreen
 import com.example.calendapp.editar_usuario.EditUserScreen
 import com.example.calendapp.registerUser.AddUserScreen
 
@@ -37,7 +39,7 @@ class MainActivity : ComponentActivity() {
                 val viewModel = remember { AgregarCalendarioViewModel() }
                 val userViewModel = remember { UserViewModel() }
 
-                NavHost(navController, startDestination = "administrador") {
+                NavHost(navController, startDestination = "login") {
                     composable("login") { 
                         val loginViewModel: LoginViewModel = viewModel()
                         val loginState by loginViewModel.loginState.collectAsState()
@@ -104,6 +106,13 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("eliminar_usuario") {
                         DeleteUserScreen(navController)
+                    }
+                    composable("confirmar_eliminar/{email}") { backStackEntry ->
+                        val email = backStackEntry.arguments?.getString("email") ?: ""
+                        ConfirmarEliminarScreen(navController, email)
+                    }
+                    composable("confirmado_eliminar") {
+                        ConfirmadoEliminarScreen(navController)
                     }
                     composable("editar_perfil") {
                         EditUserScreen(
