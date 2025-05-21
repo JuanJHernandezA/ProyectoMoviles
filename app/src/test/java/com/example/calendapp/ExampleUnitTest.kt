@@ -51,7 +51,11 @@ class ExampleUnitTest {
         assertEquals("", user.contrasena)
     }
 
-
+    @Test
+    fun `test password is valid length`() {
+        val user = UserModel(contrasena = "123456")
+        assertTrue("La contraseña debe tener al menos 6 caracteres", user.contrasena.length >= 6)
+    }
 
     
 }
