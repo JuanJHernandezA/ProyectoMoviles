@@ -51,7 +51,36 @@ class ExampleUnitTest {
         assertEquals("", user.contrasena)
     }
 
+    @Test
+    fun `test user edit with valid data`() {
+        // Arrange: Datos de prueba para edición
+        val user = UserModel(
+            cedula = "123456789",
+            nombre = "Juan",
+            apellido = "Pérez",
+            genero = "Masculino",
+            edad = "30",
+            telefono = "3001234567",
+            rol = "Administrador",
+            correo = "juan.perez@example.com",
+            contrasena = "password123"
+        )
 
+        // Act: Modificar algunos campos
+        user.nombre = "Juan Carlos"
+        user.telefono = "3009876543"
+        user.contrasena = "newPassword123"
 
-    
+        // Assert: Verificar que los cambios se aplicaron correctamente
+        assertEquals("Juan Carlos", user.nombre)
+        assertEquals("3009876543", user.telefono)
+        assertEquals("newPassword123", user.contrasena)
+        // Verificar que otros campos no cambiaron
+        assertEquals("123456789", user.cedula)
+        assertEquals("Pérez", user.apellido)
+        assertEquals("Masculino", user.genero)
+        assertEquals("30", user.edad)
+        assertEquals("Administrador", user.rol)
+        assertEquals("juan.perez@example.com", user.correo)
+    }
 }
