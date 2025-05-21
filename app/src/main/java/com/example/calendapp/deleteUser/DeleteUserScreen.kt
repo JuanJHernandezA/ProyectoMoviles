@@ -73,7 +73,8 @@ fun DeleteUserScreen(navController: NavController) {
                 onValueChange = { email = it },
                 label = { Text("Digite el correo electrónico del empleado") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(10.dp),
+                textStyle = androidx.compose.ui.text.TextStyle(color = Color.White)
             )
 
             Spacer(modifier = Modifier.height(24.dp))

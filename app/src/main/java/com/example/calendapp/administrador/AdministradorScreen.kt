@@ -100,7 +100,7 @@ fun AdministradorScreen(navController: NavHostController) {
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.encabezado), // Reemplázalo con tu imagen
+                    painter = painterResource(id = R.drawable.encabezado),
                     contentDescription = "Imagen de encabezado",
                     modifier = Modifier.fillMaxWidth().height(150.dp)
                 )
@@ -167,20 +167,18 @@ fun HorariosContent(modifier: Modifier = Modifier) {
 
     val dateFormatter = remember {
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("America/Bogota") // Configurar zona horaria de Colombia
+            timeZone = TimeZone.getTimeZone("America/Bogota")
         }
     }
 
     var selectedDate by remember { mutableStateOf(dateFormatter.format(Date())) }
-
-
     var horarios by remember { mutableStateOf<List<Horario>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val timeFormatter = remember {
         SimpleDateFormat("HH:mm:ss", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("America/Bogota") // Configurar zona horaria de Colombia
+            timeZone = TimeZone.getTimeZone("America/Bogota")
         }
     }
 
@@ -189,11 +187,9 @@ fun HorariosContent(modifier: Modifier = Modifier) {
     LaunchedEffect(Unit) {
         while (true) {
             currentTime = timeFormatter.format(Date())
-            kotlinx.coroutines.delay(1000) // Esperar 1 segundo antes de actualizar
+            kotlinx.coroutines.delay(1000)
         }
     }
-
-
 
     val calendar = Calendar.getInstance()
     val datePickerDialog = DatePickerDialog(
@@ -210,35 +206,39 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         loading = true
         errorMessage = null
         try {
-            val snapshot = db.collection("horarios")
-                .get()
-                .await()
+            val snapshot = db.collection("horarios").get().await()
+
+            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("America/Bogota")
+            }
 
             val fetchedHorarios = snapshot.documents.mapNotNull { doc ->
                 runCatching {
-                    val fechasArray = doc.get("fechas") as? List<String> ?: emptyList()
+                    val fechasArray = (doc.get("fechas") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
+                    val fechaTimestamp = doc.getTimestamp("fecha")
+                    val fechaFormateada = fechaTimestamp?.let { formatter.format(it.toDate()) }
+
+                    val todasLasFechas = mutableListOf<String>().apply {
+                        addAll(fechasArray)
+                        fechaFormateada?.let { add(it) }
+                    }
 
                     Horario(
                         descripcion = doc.getString("descripcion") ?: "",
                         empleadoId = doc.getString("empleadoId") ?: "",
-                        fecha = (doc.getTimestamp("fecha") ?: Timestamp.now()).toDate(),
+                        fecha = fechaTimestamp?.toDate(),
                         fechas = fechasArray,
                         horaInicio = doc.getString("horaInicio") ?: "",
                         horaFin = doc.getString("horaFin") ?: "",
                         ubicacion = doc.getString("ubicacion") ?: "",
                         empleado = doc.getString("empleado") ?: ""
-                    )
+                    ) to todasLasFechas
                 }.getOrNull()
-            }
+            }.filter { (_, fechasList) ->
+                fechasList.any { fecha -> fecha == selectedDate }
+            }.map { it.first }
 
-            // Filtrar por selectedDate usando fechas o fecha individual
-            horarios = fetchedHorarios.filter { horario ->
-                horario.fechas.contains(selectedDate) ||
-                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(horario.fecha) == selectedDate
-            }
-
-            println("Horarios cargados: $horarios")
-
+            horarios = fetchedHorarios
         } catch (e: Exception) {
             errorMessage = "Error al cargar horarios: ${e.localizedMessage}"
             horarios = emptyList()
@@ -247,15 +247,12 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         }
     }
 
-
     val startHour = 5
     val endHour = 24
     val hourHeightDp = 60.dp
 
-
     val backgroundColor = Color(0xFF1A1E29)
     val timelineColor = Color(0xFF3F4861)
-    val eventColorBase = Color(0xFF01C383)
     val headerColor = Color(0xFF132D46)
     val headerTextColor = Color.White
 
@@ -279,18 +276,20 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                 color = headerTextColor,
                 modifier = Modifier.weight(1f)
             )
-
             Button(onClick = { datePickerDialog.show() }) {
                 Text("Seleccionar día")
             }
         }
+
         Spacer(modifier = Modifier.height(12.dp))
+
         if (loading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
             return@Column
         }
+
         if (errorMessage != null) {
             Text(
                 text = errorMessage ?: "",
@@ -300,103 +299,136 @@ fun HorariosContent(modifier: Modifier = Modifier) {
             return@Column
         }
 
+        val scrollState = rememberScrollState()
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .background(timelineColor)
+                .horizontalScroll(scrollState)
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                for (hour in startHour..endHour) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(hourHeightDp)
-                            .border(0.5.dp, Color.Gray),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = String.format("%02d:00", hour),
+            val totalWidthDp = 500.dp // puedes ajustar esto según necesidad
+
+            Box(
+                modifier = Modifier
+                    .width(totalWidthDp)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .background(timelineColor)
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    for (hour in startHour..endHour) {
+                        Row(
                             modifier = Modifier
-                                .width(60.dp)
-                                .padding(start = 4.dp, top = 4.dp),
-                            fontSize = 12.sp,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                        )
+                                .fillMaxWidth()
+                                .height(hourHeightDp)
+                                .border(0.5.dp, Color.Gray),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = String.format("%02d:00", hour),
+                                modifier = Modifier
+                                    .width(60.dp)
+                                    .padding(start = 4.dp, top = 4.dp),
+                                fontSize = 12.sp,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                            )
+                        }
                     }
                 }
-            }
 
-            // Agrupar por horaInicio redondeada
-            val agrupados = horarios.groupBy { it.horaInicio.toHourDecimal() }
+                // ==== Posicionar eventos correctamente con columnas ====
+                data class EventoConPosicion(
+                    val horario: Horario,
+                    val columna: Int,
+                    val totalColumnas: Int
+                )
 
-            // Agrupar eventos que se cruzan
-            val eventosPorHora = mutableListOf<MutableList<Horario>>()
-            agrupados.forEach { (_, lista) ->
-                lista.forEach { horario ->
-                    // Verificar si el evento se cruza con otros
-                    val solapado = eventosPorHora.indexOfFirst { grupo ->
-                        grupo.any { it.horaInicio.toHourDecimal() < horario.horaFin.toHourDecimal() &&
-                                it.horaFin.toHourDecimal() > horario.horaInicio.toHourDecimal() }
+                val eventosConPosicion = mutableListOf<EventoConPosicion>()
+                val ordenados = horarios.sortedBy { it.horaInicio.toHourDecimal() }
+                val columnas = mutableListOf<MutableList<Horario>>()
+
+                ordenados.forEach { horario ->
+                    var colocado = false
+                    for ((i, columna) in columnas.withIndex()) {
+                        if (columna.none { existente ->
+                                existente.horaInicio.toHourDecimal() < horario.horaFin.toHourDecimal() &&
+                                        existente.horaFin.toHourDecimal() > horario.horaInicio.toHourDecimal()
+                            }) {
+                            columna.add(horario)
+                            eventosConPosicion.add(EventoConPosicion(horario, i, -1)) // temporal, corregimos luego
+
+
+                            colocado = true
+                            break
+                        }
                     }
-                    if (solapado != -1) {
-                        eventosPorHora[solapado].add(horario)
-                    } else {
-                        eventosPorHora.add(mutableListOf(horario))
+                    if (!colocado) {
+                        columnas.add(mutableListOf(horario))
+                        eventosConPosicion.add(EventoConPosicion(horario, columnas.lastIndex, columnas.size))
                     }
                 }
-            }
+                val maxColumnas = columnas.size
+                val eventosFinal = eventosConPosicion.map {
+                    it.copy(totalColumnas = maxColumnas)
+                }
+                eventosFinal.forEach { evento ->
+                    val horario = evento.horario
+                    val columna = evento.columna
+                    val totalColumnas = evento.totalColumnas
 
-            // Posicionar eventos
-            eventosPorHora.forEachIndexed { columnIndex, lista ->
-                lista.forEachIndexed { index, horario ->
                     val start = horario.horaInicio.toHourDecimal()
-                    val end = horario.horaFin.toHourDecimal().coerceAtLeast(start + 0.25f)
-                    if (end <= startHour || start >= endHour) return@forEachIndexed
+                    val end = horario.horaFin.toHourDecimal()
+
+                    if (end <= startHour || start >= endHour) return@forEach
 
                     val clampedStart = start.coerceIn(startHour.toFloat(), endHour.toFloat())
                     val clampedEnd = end.coerceIn(startHour.toFloat(), endHour.toFloat())
+
                     val topOffset = ((clampedStart - startHour) * hourHeightDp.value).dp
                     val boxHeight = ((clampedEnd - clampedStart) * hourHeightDp.value).dp
-                    val cardColor = Color(
-                        0xFF01C383
-                    )
+
+                    val columnWidth = ((totalWidthDp - 60.dp) / totalColumnas)
+                    val cardColor = Color(0xFF01C383)
 
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 68.dp + (index * 10).dp + (columnIndex * 80).dp, end = 8.dp)
-                            .absoluteOffset(y = topOffset)
+                            .absoluteOffset(x = 60.dp + columnWidth * columna, y = topOffset)
+                            .width(columnWidth - 8.dp)
                             .height(boxHeight)
                             .background(cardColor, shape = MaterialTheme.shapes.small)
-                            .padding(8.dp)
+                            .padding(4.dp)
                     ) {
-                        Column {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Text(
                                 text = horario.empleado.ifBlank { "Empleado" },
                                 fontWeight = FontWeight.Bold,
                                 color = Color.Black,
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                text = horario.descripcion.ifBlank { "Sin descripción" },
-                                color = Color.Black,
                                 fontSize = 12.sp
                             )
+                            Column {
+                                Text(
+                                    text = horario.descripcion.ifBlank { "Sin descripción" },
+                                    color = Color.Black,
+                                    fontSize = 10.sp
+                                )
+                                Text(
+                                    text = horario.ubicacion.ifBlank { "Sin ubicación" },
+                                    color = Color.Black,
+                                    fontSize = 10.sp
+                                )
+                            }
                             Text(
-                                text = horario.ubicacion.ifBlank { "Sin ubicación" },
-                                color = Color.Black,
-                                fontSize = 12.sp
-                            )
-                            Text(
-                                text = "De: ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(horario.horaInicio.toHourDecimal())} a ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(horario.horaFin.toHourDecimal())}",
+                                text = "${horario.horaInicio} - ${horario.horaFin}",
                                 color = Color.Black,
                                 fontSize = 10.sp
                             )
@@ -407,4 +439,3 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         }
     }
 }
-
