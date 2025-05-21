@@ -17,3 +17,28 @@ local.properties
 
 # Logs y temporales
 *.log
+
+# Archivos de configuración local
+local.properties
+
+# Archivos generados por el IDE
+.idea/
+*.iml
+.gradle/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Archivos de compilación
+app/build/
+app/release/
+
+# Archivos de caché
+.cache/
+
+# Archivos de dependencias
+node_modules/
+
+# Archivos de entorno
+.env
