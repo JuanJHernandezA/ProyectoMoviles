@@ -26,6 +26,10 @@ import kotlinx.coroutines.launch
 
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.URL
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,16 +42,7 @@ import com.google.firebase.Timestamp
 
 import kotlinx.coroutines.tasks.await
 
-data class Horario(
-    val descripcion: String = "",
-    val empleadoId: String = "",
-    val fecha: Date? = null, // nuevo campo
-    val fechas: List<String> = emptyList(), // nuevo
-    val horaInicio: String = "",
-    val horaFin: String = "",
-    val ubicacion: String = "",
-    val empleado: String = ""
-)
+
 
 
 
@@ -164,6 +159,7 @@ fun String.toHourDecimal(): Float {
 fun HorariosContent(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
+    var weatherInfo by remember { mutableStateOf<String?>(null) }
 
     val dateFormatter = remember {
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
@@ -187,6 +183,22 @@ fun HorariosContent(modifier: Modifier = Modifier) {
     LaunchedEffect(Unit) {
         while (true) {
             currentTime = timeFormatter.format(Date())
+            try {
+                val apiKey = "304a09c76ebe4314ab0231049252105" // WeatherAPI.com API key
+                val city = "Tuluá"
+                val response = withContext(Dispatchers.IO) {
+                    URL("https://api.weatherapi.com/v1/current.json?key=$apiKey&q=$city&lang=es").readText()
+                }
+                val jsonObj = JSONObject(response)
+                val current = jsonObj.getJSONObject("current")
+                val temp = current.getDouble("temp_c")
+
+
+                weatherInfo = "Tulua: ${temp.toInt()}°C"
+            } catch (e: Exception) {
+                weatherInfo = "No se pudo cargar el clima"
+            }
+
             kotlinx.coroutines.delay(1000)
         }
     }
@@ -269,10 +281,11 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                 .background(headerColor)
                 .padding(8.dp)
         ) {
+            val clima = weatherInfo ?: "Cargando clima..."
             Text(
-                text = "Fecha: $selectedDate \nHora actual: $currentTime",
+                text = "Fecha: $selectedDate \nHora actual: $currentTime \n$clima",
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 color = headerTextColor,
                 modifier = Modifier.weight(1f)
             )
