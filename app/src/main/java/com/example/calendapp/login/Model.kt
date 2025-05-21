@@ -6,5 +6,7 @@ data class LoginState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isSuccess: Boolean = false,
-    val userRole: String? = null
+    val userRole: String? = null,
+    val userName: String? = null,
+    val cedula: String? = null
 )

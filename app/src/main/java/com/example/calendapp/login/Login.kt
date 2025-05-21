@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -67,10 +68,13 @@ fun Login(onLoginSuccess: () -> Unit) {
                 onValueChange = { email = it },
                 label = { Text("Email", color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(color = Color.White),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF0077FF),
                     unfocusedBorderColor = Color.Gray,
-                    cursorColor = Color.White
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 )
             )
 
@@ -82,10 +86,13 @@ fun Login(onLoginSuccess: () -> Unit) {
                 onValueChange = { password = it },
                 label = { Text("Contraseña", color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(color = Color.White),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF0077FF),
                     unfocusedBorderColor = Color.Gray,
-                    cursorColor = Color.White
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 ),
                 visualTransformation = PasswordVisualTransformation()
             )
@@ -159,10 +166,13 @@ fun LoginScreen(
                 onValueChange = viewModel::onEmailChanged,
                 label = { Text("Email", color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(color = Color.White),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF0077FF),
                     unfocusedBorderColor = Color.Gray,
-                    cursorColor = Color.White
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 ),
                 enabled = !loginState.isLoading
             )
@@ -174,10 +184,13 @@ fun LoginScreen(
                 onValueChange = viewModel::onPasswordChanged,
                 label = { Text("Contraseña", color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(color = Color.White),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF0077FF),
                     unfocusedBorderColor = Color.Gray,
-                    cursorColor = Color.White
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 ),
                 visualTransformation = PasswordVisualTransformation(),
                 enabled = !loginState.isLoading
