@@ -33,6 +33,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
+import com.example.calendapp.administrador.Horario
+import com.example.calendapp.administrador.toHourDecimal
 
 import com.google.firebase.Timestamp
 
@@ -41,9 +43,10 @@ import kotlinx.coroutines.tasks.await
 data class Horario(
     val descripcion: String = "",
     val empleadoId: String = "",
-    val fecha: String = "",
-    val horaInicio: Timestamp = Timestamp.now(),
-    val horaFin: Timestamp = Timestamp.now(),
+    val fecha: Date? = null, // nuevo campo
+    val fechas: List<String> = emptyList(), // nuevo
+    val horaInicio: String = "",
+    val horaFin: String = "",
     val ubicacion: String = "",
     val empleado: String = ""
 )
@@ -149,19 +152,47 @@ fun DrawerItem(text: String, icon: ImageVector, onClick: () -> Unit) {
         Text(text, color = Color.White)
     }
 }
+fun String.toHourDecimal(): Float {
+    val parts = this.split(":")
+    val hour = parts.getOrNull(0)?.toIntOrNull() ?: 0
+    val minute = parts.getOrNull(1)?.toIntOrNull() ?: 0
+    return hour + minute / 60f
+}
 
 @Composable
 fun HorariosContent(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
 
-    var selectedDate by remember {
-        mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()))
+    val dateFormatter = remember {
+        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("America/Bogota") // Configurar zona horaria de Colombia
+        }
     }
 
-    var horarios by remember { mutableStateOf<List<Horario>>(emptyList()) }
+    var selectedDate by remember { mutableStateOf(dateFormatter.format(Date())) }
+
+
+    var horarios by remember { mutableStateOf<List<com.example.calendapp.administrador.Horario>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val timeFormatter = remember {
+        SimpleDateFormat("HH:mm:ss", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("America/Bogota") // Configurar zona horaria de Colombia
+        }
+    }
+
+    var currentTime by remember { mutableStateOf(timeFormatter.format(Date())) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentTime = timeFormatter.format(Date())
+            kotlinx.coroutines.delay(1000) // Esperar 1 segundo antes de actualizar
+        }
+    }
+
+
 
     val calendar = Calendar.getInstance()
     val datePickerDialog = DatePickerDialog(
@@ -179,23 +210,31 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         errorMessage = null
         try {
             val snapshot = db.collection("horarios")
-                .whereEqualTo("Fecha", selectedDate)
                 .get()
                 .await()
-            val horariosList = snapshot.documents.mapNotNull { doc ->
+
+            val fetchedHorarios = snapshot.documents.mapNotNull { doc ->
                 runCatching {
+                    val fechasArray = doc.get("fechas") as? List<String> ?: emptyList()
+
                     Horario(
-                        descripcion = doc.getString("Descripcion") ?: "",
-                        empleadoId = doc.getString("EmpleadoId") ?: "",
-                        fecha = doc.getString("Fecha") ?: "",
-                        horaFin = doc.getTimestamp("HoraFin") ?: Timestamp.now(),
-                        horaInicio = doc.getTimestamp("HoraInicio") ?: Timestamp.now(),
-                        ubicacion = doc.getString("Ubicacion") ?: "",
+                        descripcion = doc.getString("descripcion") ?: "",
+                        empleadoId = doc.getString("empleadoId") ?: "",
+                        fecha = (doc.getTimestamp("fecha") ?: Timestamp.now()).toDate(),
+                        fechas = fechasArray,
+                        horaInicio = doc.getString("horaInicio") ?: "",
+                        horaFin = doc.getString("horaFin") ?: "",
+                        ubicacion = doc.getString("ubicacion") ?: "",
                         empleado = doc.getString("empleado") ?: ""
                     )
                 }.getOrNull()
             }
-            horarios = horariosList.sortedBy { it.horaInicio.toDate().time }
+
+            // Filtrar por selectedDate usando fechas o fecha individual
+            horarios = fetchedHorarios.filter { horario ->
+                horario.fechas.contains(selectedDate) ||
+                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(horario.fecha) == selectedDate
+            }
 
             println("Horarios cargados: $horarios")
 
@@ -207,16 +246,11 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         }
     }
 
+
     val startHour = 5
     val endHour = 24
     val hourHeightDp = 60.dp
 
-    fun Timestamp.toHourDecimal(): Float {
-        val cal = Calendar.getInstance(TimeZone.getTimeZone("America/Bogota")).apply {
-            time = this@toHourDecimal.toDate()
-        }
-        return cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE) / 60f
-    }
 
     val backgroundColor = Color(0xFF1A1E29)
     val timelineColor = Color(0xFF3F4861)
@@ -238,12 +272,13 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                 .padding(8.dp)
         ) {
             Text(
-                text = "Fecha: $selectedDate",
+                text = "Fecha: $selectedDate \nHora actual: $currentTime",
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
+                fontSize = 16.sp,
                 color = headerTextColor,
                 modifier = Modifier.weight(1f)
             )
+
             Button(onClick = { datePickerDialog.show() }) {
                 Text("Seleccionar día")
             }
@@ -329,8 +364,8 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                     val clampedEnd = end.coerceIn(startHour.toFloat(), endHour.toFloat())
                     val topOffset = ((clampedStart - startHour) * hourHeightDp.value).dp
                     val boxHeight = ((clampedEnd - clampedStart) * hourHeightDp.value).dp
-                    val randomColor = Color(
-                        (0xFF000000..0xFF999999).random() // Color aleatorio
+                    val cardColor = Color(
+                        0xFF01C383
                     )
 
                     Box(
@@ -339,7 +374,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                             .padding(start = 68.dp + (index * 10).dp + (columnIndex * 80).dp, end = 8.dp)
                             .absoluteOffset(y = topOffset)
                             .height(boxHeight)
-                            .background(randomColor, shape = MaterialTheme.shapes.small)
+                            .background(cardColor, shape = MaterialTheme.shapes.small)
                             .padding(8.dp)
                     ) {
                         Column {
@@ -360,7 +395,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                                 fontSize = 12.sp
                             )
                             Text(
-                                text = "De: ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(horario.horaInicio.toDate())} a ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(horario.horaFin.toDate())}",
+                                text = "De: ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(horario.horaInicio.toHourDecimal())} a ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(horario.horaFin.toHourDecimal())}",
                                 color = Color.Black,
                                 fontSize = 10.sp
                             )
@@ -371,5 +406,4 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         }
     }
 }
-
 
