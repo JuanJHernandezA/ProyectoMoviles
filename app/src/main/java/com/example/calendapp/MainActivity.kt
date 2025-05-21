@@ -64,6 +64,7 @@ class MainActivity : ComponentActivity() {
                                 }
 
                             }
+                        )
                         
                     }
                     composable("administrador") {
