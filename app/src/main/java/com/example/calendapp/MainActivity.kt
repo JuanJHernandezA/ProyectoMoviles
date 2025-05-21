@@ -52,9 +52,19 @@ class MainActivity : ComponentActivity() {
                                     loginState.userRole,
                                     loginState.cedula
                                 )
-                                navController.navigate("administrador") 
+                                when (loginState.userRole) {
+                                    "admin" -> navController.navigate("administrador")
+                                    "usuario" -> navController.navigate("empleado")
+                                    else -> {
+                                        userViewModel.updateUser("", "", "")
+                                        navController.navigate("login") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    }
+                                }
+
                             }
-                        ) 
+                        
                     }
                     composable("administrador") {
                         AdministradorScreen(navController)
