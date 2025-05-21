@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.calendapp.R
 import com.example.calendapp.login.LoginScreen
 import com.example.calendapp.login.LoginViewModel
 import com.example.calendapp.ui.theme.*
@@ -27,7 +29,8 @@ import com.example.calendapp.ui.theme.*
 @Composable
 fun AddUserScreen(
     viewModel: AddUserViewModel = viewModel(),
-    onUserCreated: () -> Unit
+    onUserCreated: () -> Unit,
+    onBackClick: () -> Unit = {}
 ) {
     val userState by viewModel.userState.collectAsStateWithLifecycle()
 
@@ -44,13 +47,29 @@ fun AddUserScreen(
             .background(BackgroundColor)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "Registro de Usuario",
-            fontSize = 24.sp,
-            color = White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.arrow_back),
+                    contentDescription = "Botón de regreso",
+                    modifier = Modifier.size(24.dp),
+                    tint = White
+                )
+            }
+            
+            Text(
+                text = "Registro de Usuario",
+                fontSize = 24.sp,
+                color = White,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
 
         // Campo de Cédula
         OutlinedTextField(
