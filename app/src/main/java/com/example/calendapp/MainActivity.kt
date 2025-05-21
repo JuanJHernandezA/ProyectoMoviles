@@ -67,7 +67,8 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("agregar_usuario") {
                         AddUserScreen(
-                            onUserCreated = { navController.navigateUp() }
+                            onUserCreated = { navController.navigateUp() },
+                            onBackClick = { navController.navigateUp() }
                         )
                     }
                     composable("agregar_turno") {
