@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
                 val viewModel = remember { AgregarCalendarioViewModel() }
                 val userViewModel = remember { UserViewModel() }
 
-                NavHost(navController, startDestination = "login") {
+                NavHost(navController, startDestination = "administrador") {
                     composable("login") { 
                         val loginViewModel: LoginViewModel = viewModel()
                         val loginState by loginViewModel.loginState.collectAsState()
