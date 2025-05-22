@@ -194,7 +194,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                 val temp = current.getDouble("temp_c")
 
 
-                weatherInfo = "Tulua: ${temp.toInt()}°C"
+                weatherInfo = "Tuluá: ${temp.toInt()}°C"
             } catch (e: Exception) {
                 weatherInfo = "No se pudo cargar el clima"
             }
@@ -227,18 +227,17 @@ fun HorariosContent(modifier: Modifier = Modifier) {
             val fetchedHorarios = snapshot.documents.mapNotNull { doc ->
                 runCatching {
                     val fechasArray = (doc.get("fechas") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
-                    val fechaTimestamp = doc.getTimestamp("fecha")
-                    val fechaFormateada = fechaTimestamp?.let { formatter.format(it.toDate()) }
+
 
                     val todasLasFechas = mutableListOf<String>().apply {
                         addAll(fechasArray)
-                        fechaFormateada?.let { add(it) }
+
                     }
 
                     Horario(
                         descripcion = doc.getString("descripcion") ?: "",
                         empleadoId = doc.getString("empleadoId") ?: "",
-                        fecha = fechaTimestamp?.toDate(),
+                        fecha =doc.getTimestamp("fecha")?.toDate(),
                         fechas = fechasArray,
                         horaInicio = doc.getString("horaInicio") ?: "",
                         horaFin = doc.getString("horaFin") ?: "",
@@ -259,7 +258,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         }
     }
 
-    val startHour = 5
+    val startHour = 0
     val endHour = 24
     val hourHeightDp = 60.dp
 
@@ -320,7 +319,8 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                 .weight(1f)
                 .horizontalScroll(scrollState)
         ) {
-            val totalWidthDp = 500.dp // puedes ajustar esto según necesidad
+            val totalWidthDp = if (5> horarios.size && horarios.size> 1) 500.dp else if (horarios.size>5) 800.dp else 380.dp
+
 
             Box(
                 modifier = Modifier
@@ -375,7 +375,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                                         existente.horaFin.toHourDecimal() > horario.horaInicio.toHourDecimal()
                             }) {
                             columna.add(horario)
-                            eventosConPosicion.add(EventoConPosicion(horario, i, -1)) // temporal, corregimos luego
+                            eventosConPosicion.add(EventoConPosicion(horario, i, -1))
 
 
                             colocado = true
