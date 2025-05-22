@@ -183,22 +183,6 @@ fun HorariosContent(modifier: Modifier = Modifier) {
     LaunchedEffect(Unit) {
         while (true) {
             currentTime = timeFormatter.format(Date())
-            try {
-                val apiKey = "304a09c76ebe4314ab0231049252105" // WeatherAPI.com API key
-                val city = "Tuluá"
-                val response = withContext(Dispatchers.IO) {
-                    URL("https://api.weatherapi.com/v1/current.json?key=$apiKey&q=$city&lang=es").readText()
-                }
-                val jsonObj = JSONObject(response)
-                val current = jsonObj.getJSONObject("current")
-                val temp = current.getDouble("temp_c")
-
-
-                weatherInfo = "Tuluá: ${temp.toInt()}°C"
-            } catch (e: Exception) {
-                weatherInfo = "No se pudo cargar el clima"
-            }
-
             kotlinx.coroutines.delay(1000)
         }
     }
@@ -218,6 +202,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         loading = true
         errorMessage = null
         try {
+            // Obtener todos los horarios sin filtrar por empleado
             val snapshot = db.collection("horarios").get().await()
 
             val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
@@ -228,16 +213,14 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                 runCatching {
                     val fechasArray = (doc.get("fechas") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
 
-
                     val todasLasFechas = mutableListOf<String>().apply {
                         addAll(fechasArray)
-
                     }
 
                     Horario(
                         descripcion = doc.getString("descripcion") ?: "",
                         empleadoId = doc.getString("empleadoId") ?: "",
-                        fecha =doc.getTimestamp("fecha")?.toDate(),
+                        fecha = doc.getTimestamp("fecha")?.toDate(),
                         fechas = fechasArray,
                         horaInicio = doc.getString("horaInicio") ?: "",
                         horaFin = doc.getString("horaFin") ?: "",

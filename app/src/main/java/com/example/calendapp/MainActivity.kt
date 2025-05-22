@@ -1,6 +1,7 @@
 package com.example.calendapp
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
@@ -43,25 +44,36 @@ class MainActivity : ComponentActivity() {
                         LoginScreen(
                             viewModel = loginViewModel,
                             onLoginSuccess = { 
+                                Log.d("MainActivity", "Login exitoso - Rol: ${loginState.userRole}")
                                 userViewModel.updateUser(
                                     loginState.userName,
                                     loginState.userRole,
                                     loginState.cedula
                                 )
-                                when (loginState.userRole) {
-                                    "admin" -> navController.navigate("administrador")
-                                    "usuario" -> navController.navigate("empleado")
+                                
+                                when (loginState.userRole?.lowercase()) {
+                                    "admin" -> {
+                                        Log.d("MainActivity", "Navegando a pantalla de administrador")
+                                        navController.navigate("administrador") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    }
+                                    "usuario" -> {
+                                        Log.d("MainActivity", "Navegando a pantalla de empleado")
+                                        navController.navigate("empleado") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    }
                                     else -> {
+                                        Log.e("MainActivity", "Rol inválido: ${loginState.userRole}")
                                         userViewModel.updateUser("", "", "")
                                         navController.navigate("login") {
                                             popUpTo("login") { inclusive = true }
                                         }
                                     }
                                 }
-
                             }
                         )
-                        
                     }
                     composable("administrador") {
                         AdministradorScreen(navController)
