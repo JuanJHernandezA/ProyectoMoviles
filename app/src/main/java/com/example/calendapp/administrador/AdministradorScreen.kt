@@ -185,7 +185,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
             currentTime = timeFormatter.format(Date())
             try {
                 val apiKey = "304a09c76ebe4314ab0231049252105" // WeatherAPI.com API key
-                val city = "Tuluá"
+                val city = "Tulua"
                 val response = withContext(Dispatchers.IO) {
                     URL("https://api.weatherapi.com/v1/current.json?key=$apiKey&q=$city&lang=es").readText()
                 }
