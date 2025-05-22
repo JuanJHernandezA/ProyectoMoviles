@@ -1,5 +1,6 @@
 package com.example.calendapp.agregar_calendario.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -178,6 +179,8 @@ class AgregarCalendarioViewModel : ViewModel() {
                     return@launch
                 }
 
+                Log.d("AgregarCalendario", "Guardando horario para fechas: ${fechasSeleccionadas.value}")
+
                 // Crear el documento del horario
                 val horarioData = hashMapOf(
                     "descripcion" to descripcion.value,
@@ -190,12 +193,16 @@ class AgregarCalendarioViewModel : ViewModel() {
 
                 // Para cada usuario seleccionado, crear el horario y su notificación
                 usuariosSeleccionados.value.forEach { usuario ->
+                    Log.d("AgregarCalendario", "Guardando horario para usuario: ${usuario.cedula}")
+                    
                     // Crear el horario para este usuario
                     val horarioRef = db.collection("horarios").document()
                     val horarioCompleto = horarioData + hashMapOf(
                         "empleadoId" to usuario.cedula,
                         "empleado" to "${usuario.nombre} ${usuario.apellido}"
                     )
+                    
+                    Log.d("AgregarCalendario", "Datos del horario: $horarioCompleto")
                     horarioRef.set(horarioCompleto).await()
 
                     // Crear la notificación para este usuario
@@ -213,7 +220,7 @@ class AgregarCalendarioViewModel : ViewModel() {
                 mensajeExito.value = "Horario guardado exitosamente"
                 mensajeError.value = null
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("AgregarCalendario", "Error al guardar el horario", e)
                 mensajeError.value = "Error al guardar el horario: ${e.message}"
                 mensajeExito.value = null
             }
