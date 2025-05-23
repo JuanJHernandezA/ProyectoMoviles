@@ -60,7 +60,7 @@ data class Horario(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmpleadoScreen(navController: NavHostController) {
+fun EmpleadoScreen(navController: NavHostController,  cedula: String) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -112,7 +112,7 @@ fun EmpleadoScreen(navController: NavHostController) {
                     modifier = Modifier.fillMaxWidth().height(150.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                HorariosContent(Modifier.weight(1f))
+                HorariosContent(Modifier.weight(1f),  cedula)
 
 
             }
@@ -166,14 +166,13 @@ fun String.toHourDecimal(): Float {
 }
 
 @Composable
-fun HorariosContent(modifier: Modifier = Modifier) {
+fun HorariosContent(modifier: Modifier = Modifier, cedula: String) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
     var weatherInfo by remember { mutableStateOf<String?>(null) }
     val userViewModel = remember { UserViewModel() }
-    val userState by userViewModel.userState.collectAsState()
 
-    Log.d("EmpleadoScreen", "Estado del usuario - Cédula: ${userState.cedula}, Rol: ${userState.userRole}, Nombre: ${userState.userName}")
+    Log.d("EmpleadoScreen", "Estado del usuario - Cédula: $cedula")
 
     val dateFormatter = remember {
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
@@ -233,7 +232,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         errorMessage = null
         try {
             Log.d("EmpleadoScreen", "Iniciando búsqueda de horarios")
-            Log.d("EmpleadoScreen", "Cédula del usuario: ${userState.cedula}")
+            Log.d("EmpleadoScreen", "Cédula del usuario: $cedula")
             Log.d("EmpleadoScreen", "Fecha seleccionada: $selectedDate")
 
             // Obtener todos los horarios y filtrar después
@@ -247,14 +246,14 @@ fun HorariosContent(modifier: Modifier = Modifier) {
             val fetchedHorarios = snapshot.documents.mapNotNull { doc ->
                 runCatching {
                     val fechasArray = (doc.get("fechas") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
-                    val fecha = doc.getTimestamp("fecha")?.toDate()
 
-                    Log.d("EmpleadoScreen", "Procesando documento - fechasArray: $fechasArray, fecha: $fecha")
+
+                    Log.d("EmpleadoScreen", "Procesando documento - fechasArray: $fechasArray")
 
                     Horario(
                         descripcion = doc.getString("descripcion") ?: "",
                         empleadoId = doc.getString("empleadoId") ?: "",
-                        fecha = fecha,
+                        fecha = doc.getTimestamp("fecha")?.toDate(),
                         fechas = fechasArray,
                         horaInicio = doc.getString("horaInicio") ?: "",
                         horaFin = doc.getString("horaFin") ?: "",
@@ -268,10 +267,10 @@ fun HorariosContent(modifier: Modifier = Modifier) {
             fetchedHorarios.forEach { horario ->
                 Log.d("EmpleadoScreen", "Horario procesado - empleadoId: ${horario.empleadoId}, fechas: ${horario.fechas}, fecha: ${horario.fecha}")
             }
-
+            Log.d("usercurrent", "usercurrent: $cedula")
             // Filtrar primero por empleado y luego por fecha
             horarios = fetchedHorarios
-                .filter { it.empleadoId == userState.cedula }
+                .filter { it.empleadoId == cedula }
                 .filter { horario ->
                     val matches = horario.fechas.contains(selectedDate) ||
                         (horario.fecha != null && SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(horario.fecha) == selectedDate)
