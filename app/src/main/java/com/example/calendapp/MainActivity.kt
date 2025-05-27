@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                     "usuario" -> {
                                         Log.d("MainActivity", "Navegando a pantalla de empleado")
-                                        navController.navigate("empleado") {
+                                        navController.navigate("empleado/${loginState.cedula}") {
                                             popUpTo("login") { inclusive = true }
                                         }
                                     }
@@ -112,8 +112,10 @@ class MainActivity : ComponentActivity() {
                             onBackClick = { navController.navigateUp() }
                         )
                     }
-                    composable("empleado") {
-                        EmpleadoScreen(navController)
+                    composable("empleado/{cedula}") { backStackEntry ->
+                        val cedula = backStackEntry.arguments?.getString("cedula") ?: ""
+
+                        EmpleadoScreen(navController, cedula)
                     }
                 }
             }
