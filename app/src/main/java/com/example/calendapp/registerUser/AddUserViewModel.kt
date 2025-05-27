@@ -3,11 +3,13 @@ package com.example.calendapp.registerUser
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calendapp.config.FirebaseConfig
+import com.example.calendapp.login.LoginViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import android.util.Log
 
 class AddUserViewModel : ViewModel() {
     private val _userState = MutableStateFlow(UserState())
@@ -75,6 +77,20 @@ class AddUserViewModel : ViewModel() {
                         .document(uid)
                         .set(userData)
                         .await()
+
+                    // Volver a autenticar al admin usando las credenciales guardadas
+                    if (LoginViewModel.currentUserEmail.isNotEmpty() && LoginViewModel.currentUserPassword.isNotEmpty()) {
+                        try {
+                            FirebaseConfig.auth.signOut()
+                            FirebaseConfig.auth.signInWithEmailAndPassword(
+                                LoginViewModel.currentUserEmail,
+                                LoginViewModel.currentUserPassword
+                            ).await()
+                            Log.d("AddUserViewModel", "Admin reautenticado exitosamente")
+                        } catch (e: Exception) {
+                            Log.e("AddUserViewModel", "Error al reautenticar al admin", e)
+                        }
+                    }
                 
                     _userState.value = _userState.value.copy(
                         isLoading = false,
@@ -103,4 +119,4 @@ class AddUserViewModel : ViewModel() {
     fun resetState() {
         _userState.value = UserState()
     }
-} 
+}
