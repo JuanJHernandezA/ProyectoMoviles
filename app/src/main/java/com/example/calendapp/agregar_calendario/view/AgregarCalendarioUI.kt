@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -33,14 +34,14 @@ import com.example.calendapp.agregar_calendario.viewmodel.AgregarCalendarioViewM
 import com.example.calendapp.config.UserViewModel
 import kotlinx.coroutines.launch
 import java.util.*
+import androidx.compose.foundation.verticalScroll
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AgregarCalendarioUI(
     navController: NavHostController,
     viewModel: AgregarCalendarioViewModel = viewModel(),
-    userViewModel: UserViewModel,
-    onFrecuenciaClick: () -> Unit
+    userViewModel: UserViewModel
 ) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
@@ -204,7 +205,8 @@ fun AgregarCalendarioUI(
                     modifier = Modifier
                         .padding(top = 220.dp)
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Campo: Nombre del usuario
@@ -306,34 +308,6 @@ fun AgregarCalendarioUI(
                             onValueChange = { },
                             label = { Text("Seleccionar fecha", color = Color.White) },
                             leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null, tint = Color.White) },
-                            modifier = Modifier.fillMaxWidth(),
-                            readOnly = true,
-                            enabled = false,
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFF2A3C53),
-                                unfocusedContainerColor = Color(0xFF2A3C53),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedIndicatorColor = Color.White,
-                                unfocusedIndicatorColor = Color.Gray,
-                                disabledTextColor = Color.White,
-                                disabledContainerColor = Color(0xFF2A3C53),
-                                disabledIndicatorColor = Color.Gray
-                            )
-                        )
-                    }
-
-                    // Campo: Frecuencia
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(onClick = onFrecuenciaClick)
-                    ) {
-                        OutlinedTextField(
-                            value = viewModel.frecuencia.value,
-                            onValueChange = { },
-                            label = { Text("Personalizar frecuencia", color = Color.White) },
-                            leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White) },
                             modifier = Modifier.fillMaxWidth(),
                             readOnly = true,
                             enabled = false,

@@ -1,6 +1,7 @@
 package com.example.calendapp
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
@@ -18,8 +19,6 @@ import com.example.calendapp.administrador.AdministradorScreen
 import com.example.calendapp.deleteUser.DeleteUserScreen
 import com.example.calendapp.empleado.EmpleadoScreen
 import com.example.calendapp.agregar_calendario.view.AgregarCalendarioUI
-import com.example.calendapp.agregar_calendario.view.FrecuenciaDialog
-import com.example.calendapp.agregar_calendario.view.PersonalizacionFrecuenciaDialog
 import com.example.calendapp.agregar_calendario.viewmodel.AgregarCalendarioViewModel
 import com.example.calendapp.notificaciones.view.NotificacionesUI
 import com.example.calendapp.config.UserViewModel
@@ -34,8 +33,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 val navController = rememberNavController()
-                val showFrecuenciaDialog = remember { mutableStateOf(false) }
-                val showPersonalizacionDialog = remember { mutableStateOf(false) }
                 val viewModel = remember { AgregarCalendarioViewModel() }
                 val userViewModel = remember { UserViewModel() }
 
@@ -47,25 +44,36 @@ class MainActivity : ComponentActivity() {
                         LoginScreen(
                             viewModel = loginViewModel,
                             onLoginSuccess = { 
+                                Log.d("MainActivity", "Login exitoso - Rol: ${loginState.userRole}")
                                 userViewModel.updateUser(
                                     loginState.userName,
                                     loginState.userRole,
                                     loginState.cedula
                                 )
-                                when (loginState.userRole) {
-                                    "admin" -> navController.navigate("administrador")
-                                    "usuario" -> navController.navigate("empleado")
+                                
+                                when (loginState.userRole?.lowercase()) {
+                                    "admin" -> {
+                                        Log.d("MainActivity", "Navegando a pantalla de administrador")
+                                        navController.navigate("administrador") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    }
+                                    "usuario" -> {
+                                        Log.d("MainActivity", "Navegando a pantalla de empleado")
+                                        navController.navigate("empleado/${loginState.cedula}") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    }
                                     else -> {
+                                        Log.e("MainActivity", "Rol inválido: ${loginState.userRole}")
                                         userViewModel.updateUser("", "", "")
                                         navController.navigate("login") {
                                             popUpTo("login") { inclusive = true }
                                         }
                                     }
                                 }
-
                             }
                         )
-                        
                     }
                     composable("administrador") {
                         AdministradorScreen(navController)
@@ -86,35 +94,8 @@ class MainActivity : ComponentActivity() {
                         AgregarCalendarioUI(
                             navController = navController,
                             viewModel = viewModel,
-                            userViewModel = userViewModel,
-                            onFrecuenciaClick = {
-                                showFrecuenciaDialog.value = true
-                            }
+                            userViewModel = userViewModel
                         )
-
-                        if (showFrecuenciaDialog.value) {
-                            FrecuenciaDialog(
-                                onDismiss = { showFrecuenciaDialog.value = false },
-                                onOptionSelected = { opcion ->
-                                    showFrecuenciaDialog.value = false
-                                    if (opcion == "Personalización...") {
-                                        showPersonalizacionDialog.value = true
-                                    } else {
-                                        viewModel.actualizarFrecuencia(opcion)
-                                    }
-                                }
-                            )
-                        }
-
-                        if (showPersonalizacionDialog.value) {
-                            PersonalizacionFrecuenciaDialog(
-                                onDismiss = { showPersonalizacionDialog.value = false },
-                                onComplete = { frecuencia ->
-                                    showPersonalizacionDialog.value = false
-                                    viewModel.actualizarFrecuencia(frecuencia)
-                                }
-                            )
-                        }
                     }
                     composable("eliminar_usuario") {
                         DeleteUserScreen(navController)
@@ -131,8 +112,10 @@ class MainActivity : ComponentActivity() {
                             onBackClick = { navController.navigateUp() }
                         )
                     }
-                    composable("empleado") {
-                        EmpleadoScreen(navController)
+                    composable("empleado/{cedula}") { backStackEntry ->
+                        val cedula = backStackEntry.arguments?.getString("cedula") ?: ""
+
+                        EmpleadoScreen(navController, cedula)
                     }
                 }
             }

@@ -7,7 +7,6 @@ data class Calendario(
     val horaFin: String = "",
     val ubicacion: String = "",
     val descripcion: String = "",
-    val frecuencia: String = "",
     val usuarios: List<Usuario> = emptyList(),
     val fechas: List<String> = emptyList()
 ) 
