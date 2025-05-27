@@ -16,12 +16,6 @@ class LoginViewModel : ViewModel() {
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState
 
-    // Variables para almacenar las credenciales del usuario actual
-    companion object {
-        var currentUserEmail: String = ""
-        var currentUserPassword: String = ""
-    }
-
     fun onEmailChanged(newEmail: String) {
         _loginState.value = _loginState.value.copy(email = newEmail)
     }
@@ -64,10 +58,10 @@ class LoginViewModel : ViewModel() {
                     Log.d("LoginViewModel", "Datos obtenidos - Nombre: $nombre, Rol: $rol, Cédula: $cedula")
                     
                     if (rol.isEmpty()) {
-                        Log.e("LoginViewModel", "Error: usuario no encontrado")
+                        Log.e("LoginViewModel", "Error: Rol de usuario no encontrado")
                         _loginState.value = _loginState.value.copy(
                             isLoading = false,
-                            error = "Error: usuario no encontrado"
+                            error = "Error: Rol de usuario no encontrado"
                         )
                         return@launch
                     }
@@ -90,11 +84,6 @@ class LoginViewModel : ViewModel() {
                         )
                         return@launch
                     }
-
-                    // Guardar las credenciales del usuario actual
-                    currentUserEmail = email
-                    currentUserPassword = password
-                    Log.d("LoginViewModel", "Credenciales guardadas para el usuario: $email")
 
                     Log.d("LoginViewModel", "Login exitoso, actualizando estado")
                     _loginState.value = _loginState.value.copy(
