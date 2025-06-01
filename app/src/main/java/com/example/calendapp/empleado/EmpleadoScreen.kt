@@ -45,24 +45,23 @@ import org.json.JSONObject
 import java.net.URL
 
 import kotlinx.coroutines.tasks.await
-
-data class Horario(
-    val descripcion: String = "",
-    val empleadoId: String = "",
-    val fecha: Date? = null, // nuevo campo
-    val fechas: List<String> = emptyList(), // nuevo
-    val horaInicio: String = "",
-    val horaFin: String = "",
-    val ubicacion: String = "",
-    val empleado: String = ""
-)
-
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmpleadoScreen(navController: NavHostController,  cedula: String) {
+fun EmpleadoScreen(
+    navController: NavHostController,
+    cedula: String,
+    viewModel: EmpleadoViewModel = viewModel()
+) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadHorarios()
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -112,7 +111,11 @@ fun EmpleadoScreen(navController: NavHostController,  cedula: String) {
                     modifier = Modifier.fillMaxWidth().height(150.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                HorariosContent(Modifier.weight(1f),  cedula)
+                HorariosContent(
+                    modifier = Modifier.weight(1f),
+                    state = state,
+                    onDateSelected = viewModel::updateSelectedDate
+                )
 
 
             }
@@ -166,136 +169,25 @@ fun String.toHourDecimal(): Float {
 }
 
 @Composable
-fun HorariosContent(modifier: Modifier = Modifier, cedula: String) {
+fun HorariosContent(
+    modifier: Modifier = Modifier,
+    state: EmpleadoState,
+    onDateSelected: (String) -> Unit
+) {
     val context = LocalContext.current
-    val db = remember { FirebaseFirestore.getInstance() }
-    var weatherInfo by remember { mutableStateOf<String?>(null) }
-    val userViewModel = remember { UserViewModel() }
-
-    Log.d("EmpleadoScreen", "Estado del usuario - Cédula: $cedula")
-
-    val dateFormatter = remember {
-        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("America/Bogota") // Configurar zona horaria de Colombia
-        }
-    }
-
-    var selectedDate by remember { mutableStateOf(dateFormatter.format(Date())) }
-
-    var horarios by remember { mutableStateOf<List<com.example.calendapp.administrador.Horario>>(emptyList()) }
-    var loading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    val timeFormatter = remember {
-        SimpleDateFormat("HH:mm:ss", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("America/Bogota") // Configurar zona horaria de Colombia
-        }
-    }
-
-    var currentTime by remember { mutableStateOf(timeFormatter.format(Date())) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            currentTime = timeFormatter.format(Date())
-            try {
-                val apiKey = "304a09c76ebe4314ab0231049252105" // Replace with your WeatherAPI.com API key
-                val city = "Tulua"
-                val response = withContext(Dispatchers.IO) {
-                    URL("https://api.weatherapi.com/v1/current.json?key=$apiKey&q=$city&lang=es").readText()
-                }
-                val jsonObj = JSONObject(response)
-                val current = jsonObj.getJSONObject("current")
-                val temp = current.getDouble("temp_c")
-
-
-                weatherInfo = "Tulua: ${temp.toInt()}°C"
-            } catch (e: Exception) {
-                weatherInfo = "No se pudo cargar el clima"
-            }
- kotlinx.coroutines.delay(1000) // Esperar 1 segundo antes de actualizar
-        }
-    }
-
     val calendar = Calendar.getInstance()
     val datePickerDialog = DatePickerDialog(
         context,
         { _, year, month, dayOfMonth ->
-            selectedDate = "$year-${(month + 1).toString().padStart(2, '0')}-${dayOfMonth.toString().padStart(2, '0')}"
+            val selectedDate = "$year-${(month + 1).toString().padStart(2, '0')}-${dayOfMonth.toString().padStart(2, '0')}"
+            onDateSelected(selectedDate)
         },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    LaunchedEffect(selectedDate) {
-        loading = true
-        errorMessage = null
-        try {
-            Log.d("EmpleadoScreen", "Iniciando búsqueda de horarios")
-            Log.d("EmpleadoScreen", "Cédula del usuario: $cedula")
-            Log.d("EmpleadoScreen", "Fecha seleccionada: $selectedDate")
-
-            // Obtener todos los horarios y filtrar después
-            val snapshot = db.collection("horarios").get().await()
-
-            Log.d("EmpleadoScreen", "Documentos encontrados: ${snapshot.documents.size}")
-            snapshot.documents.forEach { doc ->
-                Log.d("EmpleadoScreen", "Documento - empleadoId: ${doc.getString("empleadoId")}, empleado: ${doc.getString("empleado")}, fechas: ${doc.get("fechas")}")
-            }
-            
-            val fetchedHorarios = snapshot.documents.mapNotNull { doc ->
-                runCatching {
-                    val fechasArray = (doc.get("fechas") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
-
-
-                    Log.d("EmpleadoScreen", "Procesando documento - fechasArray: $fechasArray")
-
-                    Horario(
-                        descripcion = doc.getString("descripcion") ?: "",
-                        empleadoId = doc.getString("empleadoId") ?: "",
-                        fecha = doc.getTimestamp("fecha")?.toDate(),
-                        fechas = fechasArray,
-                        horaInicio = doc.getString("horaInicio") ?: "",
-                        horaFin = doc.getString("horaFin") ?: "",
-                        ubicacion = doc.getString("ubicacion") ?: "",
-                        empleado = doc.getString("empleado") ?: ""
-                    )
-                }.getOrNull()
-            }
-
-            Log.d("EmpleadoScreen", "Horarios procesados: ${fetchedHorarios.size}")
-            fetchedHorarios.forEach { horario ->
-                Log.d("EmpleadoScreen", "Horario procesado - empleadoId: ${horario.empleadoId}, fechas: ${horario.fechas}, fecha: ${horario.fecha}")
-            }
-            Log.d("usercurrent", "usercurrent: $cedula")
-            // Filtrar primero por empleado y luego por fecha
-            horarios = fetchedHorarios
-                .filter { it.empleadoId == cedula }
-                .filter { horario ->
-                    val matches = horario.fechas.contains(selectedDate) ||
-                        (horario.fecha != null && SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(horario.fecha) == selectedDate)
-                    
-                    if (matches) {
-                        Log.d("EmpleadoScreen", "Horario encontrado para fecha $selectedDate: ${horario.descripcion}")
-                    }
-                    matches
-                }
-
-            Log.d("EmpleadoScreen", "Horarios filtrados para fecha $selectedDate: ${horarios.size}")
-            horarios.forEach { horario ->
-                Log.d("EmpleadoScreen", "Horario final: ${horario.descripcion} - ${horario.horaInicio} a ${horario.horaFin}")
-            }
-
-        } catch (e: Exception) {
-            Log.e("EmpleadoScreen", "Error al cargar horarios", e)
-            errorMessage = "Error al cargar horarios: ${e.localizedMessage}"
-            horarios = emptyList()
-        } finally {
-            loading = false
-        }
-    }
-
-    val startHour = 5
+    val startHour = 0
     val endHour = 24
     val hourHeightDp = 60.dp
 
@@ -318,9 +210,9 @@ fun HorariosContent(modifier: Modifier = Modifier, cedula: String) {
                 .background(headerColor)
                 .padding(8.dp)
         ) {
-            val clima = weatherInfo ?: "Cargando clima..."
+            val clima = state.weatherInfo ?: "Cargando clima..."
             Text(
-                text = "Fecha: $selectedDate \nHora actual: $currentTime \n$clima",
+                text = "Fecha: ${state.selectedDate} \nHora actual: ${state.currentTime} \n$clima",
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
                 color = headerTextColor,
@@ -332,15 +224,17 @@ fun HorariosContent(modifier: Modifier = Modifier, cedula: String) {
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
-        if (loading) {
+        
+        if (state.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
             return@Column
         }
-        if (errorMessage != null) {
+        
+        if (state.error != null) {
             Text(
-                text = errorMessage ?: "",
+                text = state.error,
                 color = Color.Red,
                 modifier = Modifier.padding(8.dp)
             )
@@ -353,7 +247,7 @@ fun HorariosContent(modifier: Modifier = Modifier, cedula: String) {
                 .weight(1f)
                 .horizontalScroll(rememberScrollState())
         ) {
-            val totalWidthDp = if (5 > horarios.size && horarios.size > 1) 500.dp else if (horarios.size > 5) 800.dp else 380.dp
+            val totalWidthDp = if (5 > state.horarios.size && state.horarios.size > 1) 500.dp else if (state.horarios.size > 5) 800.dp else 380.dp
 
             Box(
                 modifier = Modifier
@@ -389,7 +283,6 @@ fun HorariosContent(modifier: Modifier = Modifier, cedula: String) {
                     }
                 }
 
-                // ==== Posicionar eventos correctamente con columnas ====
                 data class EventoConPosicion(
                     val horario: Horario,
                     val columna: Int,
@@ -397,7 +290,7 @@ fun HorariosContent(modifier: Modifier = Modifier, cedula: String) {
                 )
 
                 val eventosConPosicion = mutableListOf<EventoConPosicion>()
-                val ordenados = horarios.sortedBy { it.horaInicio.toHourDecimal() }
+                val ordenados = state.horarios.sortedBy { it.horaInicio.toHourDecimal() }
                 val columnas = mutableListOf<MutableList<Horario>>()
 
                 ordenados.forEach { horario ->
@@ -438,7 +331,7 @@ fun HorariosContent(modifier: Modifier = Modifier, cedula: String) {
                     val clampedEnd = end.coerceIn(startHour.toFloat(), endHour.toFloat())
 
                     val topOffset = ((clampedStart - startHour) * hourHeightDp.value).dp
-                    val boxHeight = ((clampedEnd - clampedStart) * hourHeightDp.value).dp
+                    val boxHeight = ((clampedEnd - clampedStart + 1) * hourHeightDp.value).dp
 
                     val columnWidth = ((totalWidthDp - 60.dp) / totalColumnas)
                     val cardColor = Color(0xFF01C383)
