@@ -74,7 +74,8 @@ fun EmpleadoScreen(
                 onLogout = {
                     navController.navigate("login")
                     scope.launch { drawerState.close() }
-                }
+                },
+                drawerState = drawerState
             )
         }
     ) {
@@ -126,8 +127,11 @@ fun EmpleadoScreen(
 @Composable
 fun DrawerContent(
     onNavigate: (String) -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    drawerState: DrawerState
 ) {
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -135,12 +139,11 @@ fun DrawerContent(
             .padding(16.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
-        IconButton(onClick = { onNavigate("empleado") }) {
+        IconButton(onClick = { scope.launch { drawerState.close() } }) {
             Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
         }
         Text("Panel empleado", color = Color.White, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
-
 
         DrawerItem("Editar perfil", Icons.Default.Edit) { onNavigate("editar_perfil") }
         DrawerItem("Cerrar sesión", Icons.Default.Close) { onLogout() }
