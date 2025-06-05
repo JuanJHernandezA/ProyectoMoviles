@@ -409,7 +409,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                     val boxHeight = ((clampedEnd - clampedStart) * hourHeightDp.value).dp
 
                     val columnWidth = ((totalWidthDp - 60.dp) / totalColumnas)
-                    val cardColor = Color(0xFF01C383)
+                    val cardColor = Color(0xA18682F5)
 
                     Box(
                         modifier = Modifier
