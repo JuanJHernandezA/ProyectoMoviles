@@ -459,24 +459,24 @@ fun HorariosContent(modifier: Modifier = Modifier, cedula: String) {
                                 text = horario.empleado.ifBlank { "Empleado" },
                                 fontWeight = FontWeight.Bold,
                                 color = Color.Black,
-                                fontSize = 12.sp
+                                fontSize = 16.sp
                             )
                             Column {
                                 Text(
                                     text = horario.descripcion.ifBlank { "Sin descripción" },
                                     color = Color.Black,
-                                    fontSize = 10.sp
+                                    fontSize = 14.sp
                                 )
                                 Text(
                                     text = horario.ubicacion.ifBlank { "Sin ubicación" },
                                     color = Color.Black,
-                                    fontSize = 10.sp
+                                    fontSize = 14.sp
                                 )
                             }
                             Text(
                                 text = "${horario.horaInicio} - ${horario.horaFin}",
                                 color = Color.Black,
-                                fontSize = 10.sp
+                                fontSize = 14.sp
                             )
                         }
                     }
