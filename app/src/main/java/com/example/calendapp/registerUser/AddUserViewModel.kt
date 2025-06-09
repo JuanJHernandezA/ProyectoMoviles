@@ -79,17 +79,11 @@ class AddUserViewModel : ViewModel() {
                         .set(userData)
                         .await()
                     // Volver a autenticar al admin usando las credenciales guardadas
-                    if (LoginViewModel.currentUserEmail.isNotEmpty() && LoginViewModel.currentUserPassword.isNotEmpty()) {
-                        try {
-                            FirebaseConfig.auth.signOut()
-                            FirebaseConfig.auth.signInWithEmailAndPassword(
-                                LoginViewModel.currentUserEmail,
-                                LoginViewModel.currentUserPassword
-                            ).await()
-                            Log.d("AddUserViewModel", "Admin reautenticado exitosamente")
-                        } catch (e: Exception) {
-                            Log.e("AddUserViewModel", "Error al reautenticar al admin", e)
-                        }
+                    FirebaseConfig.auth.signOut()
+                    if (LoginViewModel.reautenticar()) {
+                        Log.d("AddUserViewModel", "Admin reautenticado exitosamente")
+                    } else {
+                        Log.e("AddUserViewModel", "Error al reautenticar al admin")
                     }
                     _userState.value = _userState.value.copy(
                         isLoading = false,
