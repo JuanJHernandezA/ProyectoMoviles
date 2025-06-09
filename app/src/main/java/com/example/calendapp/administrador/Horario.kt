@@ -3,6 +3,7 @@ package com.example.calendapp.administrador
 import java.util.*
 
 data class Horario(
+    val documentId: String = "",
     val descripcion: String = "",
     val empleadoId: String = "",
     val fecha: Date? = null,

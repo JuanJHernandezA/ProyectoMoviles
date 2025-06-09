@@ -47,21 +47,26 @@ fun NotificacionesUI(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+
             // Barra superior con botón de retroceso y título
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF132D46))
-                    .padding(16.dp),
+                    .padding(22.dp),
                 verticalAlignment = Alignment.CenterVertically
+
             ) {
+
                 IconButton(onClick = { navController.navigateUp() }) {
+
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Volver",
                         tint = Color.White
                     )
                 }
+
                 Text(
                     text = "Notificaciones",
                     color = Color.White,

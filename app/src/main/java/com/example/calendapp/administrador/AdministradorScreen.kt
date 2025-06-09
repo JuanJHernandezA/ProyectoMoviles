@@ -1,6 +1,7 @@
 package com.example.calendapp.administrador
 
 import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -160,6 +161,34 @@ fun HorariosContent(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val db = remember { FirebaseFirestore.getInstance() }
     var weatherInfo by remember { mutableStateOf<String?>(null) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var horarioToDelete by remember { mutableStateOf<Horario?>(null) }
+    var reloadTrigger by remember { mutableStateOf(0) }
+    
+    // Variables para el diálogo de edición
+    var showEditDialog by remember { mutableStateOf(false) }
+    var horarioToEdit by remember { mutableStateOf<Horario?>(null) }
+    var editedDescripcion by remember { mutableStateOf("") }
+    var editedHoraInicio by remember { mutableStateOf("") }
+    var editedHoraFin by remember { mutableStateOf("") }
+    var editedUbicacion by remember { mutableStateOf("") }
+
+    // TimePickerDialogs
+    val timePickerInicio = TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            editedHoraInicio = String.format("%02d:%02d", hour, minute)
+        },
+        0, 0, true
+    )
+
+    val timePickerFin = TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            editedHoraFin = String.format("%02d:%02d", hour, minute)
+        },
+        0, 0, true
+    )
 
     val dateFormatter = remember {
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
@@ -216,7 +245,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    LaunchedEffect(selectedDate) {
+    LaunchedEffect(selectedDate, reloadTrigger) {
         loading = true
         errorMessage = null
         try {
@@ -236,6 +265,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                     }
 
                     Horario(
+                        documentId = doc.id,
                         descripcion = doc.getString("descripcion") ?: "",
                         empleadoId = doc.getString("empleadoId") ?: "",
                         fecha = doc.getTimestamp("fecha")?.toDate(),
@@ -409,7 +439,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                     val boxHeight = ((clampedEnd - clampedStart) * hourHeightDp.value).dp
 
                     val columnWidth = ((totalWidthDp - 60.dp) / totalColumnas)
-                    val cardColor = Color(0xFF01C383)
+                    val cardColor = Color(0xA18682F5)
 
                     Box(
                         modifier = Modifier
@@ -423,33 +453,243 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(
-                                text = horario.empleado.ifBlank { "Empleado" },
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black,
-                                fontSize = 12.sp
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = horario.empleado.ifBlank { "Empleado" },
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black,
+                                    fontSize = 16.sp
+                                )
+                                Row {
+                                    IconButton(
+                                        onClick = {
+                                            horarioToEdit = horario
+                                            editedDescripcion = horario.descripcion
+                                            editedHoraInicio = horario.horaInicio
+                                            editedHoraFin = horario.horaFin
+                                            editedUbicacion = horario.ubicacion
+                                            showEditDialog = true
+                                        },
+                                        modifier = Modifier.size(20.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Edit,
+                                            contentDescription = "Editar horario",
+                                            tint = Color.Blue,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    IconButton(
+                                        onClick = {
+                                            horarioToDelete = horario
+                                            showDeleteConfirmation = true
+                                        },
+                                        modifier = Modifier.size(20.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Eliminar horario",
+                                            tint = Color.Red,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
                             Column {
                                 Text(
                                     text = horario.descripcion.ifBlank { "Sin descripción" },
                                     color = Color.Black,
-                                    fontSize = 10.sp
+                                    fontSize = 14.sp
                                 )
                                 Text(
                                     text = horario.ubicacion.ifBlank { "Sin ubicación" },
                                     color = Color.Black,
-                                    fontSize = 10.sp
+                                    fontSize = 14.sp
                                 )
                             }
                             Text(
                                 text = "${horario.horaInicio} - ${horario.horaFin}",
                                 color = Color.Black,
-                                fontSize = 10.sp
+                                fontSize = 14.sp
                             )
                         }
                     }
                 }
             }
         }
+    }
+
+    // Add the confirmation dialog
+    if (showDeleteConfirmation && horarioToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { 
+                showDeleteConfirmation = false
+                horarioToDelete = null
+            },
+            title = { Text("Confirmar eliminación") },
+            text = { Text("¿Está seguro que desea eliminar este horario?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        horarioToDelete?.let { horario ->
+                            db.collection("horarios").document(horario.documentId)
+                                .delete()
+                                .addOnSuccessListener {
+                                    Toast.makeText(context, "Horario eliminado", Toast.LENGTH_SHORT).show()
+                                    reloadTrigger++ // Trigger reload after successful deletion
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(context, "Error al eliminar: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                        showDeleteConfirmation = false
+                        horarioToDelete = null
+                    }
+                ) {
+                    Text("Sí", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { 
+                        showDeleteConfirmation = false
+                        horarioToDelete = null
+                    }
+                ) {
+                    Text("No")
+                }
+            }
+        )
+    }
+
+    // Diálogo de edición
+    if (showEditDialog && horarioToEdit != null) {
+        AlertDialog(
+            onDismissRequest = { 
+                showEditDialog = false
+                horarioToEdit = null
+            },
+            title = { 
+                Text(
+                    "Editar Horario",
+                    color = Color.White
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = editedDescripcion,
+                        onValueChange = { editedDescripcion = it },
+                        label = { Text("Descripción", color = Color.White) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedLabelColor = Color.White,
+                            unfocusedLabelColor = Color.Gray,
+                            cursorColor = Color.White,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = { timePickerInicio.show() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color(0xFF2A3C53)
+                        )
+                    ) {
+                        Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            "Hora Inicio: ${editedHoraInicio}",
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = { timePickerFin.show() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color(0xFF2A3C53)
+                        )
+                    ) {
+                        Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            "Hora Fin: ${editedHoraFin}",
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = editedUbicacion,
+                        onValueChange = { editedUbicacion = it },
+                        label = { Text("Ubicación", color = Color.White) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedLabelColor = Color.White,
+                            unfocusedLabelColor = Color.Gray,
+                            cursorColor = Color.White,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        horarioToEdit?.let { horario ->
+                            val updates = hashMapOf<String, Any>(
+                                "descripcion" to editedDescripcion,
+                                "horaInicio" to editedHoraInicio,
+                                "horaFin" to editedHoraFin,
+                                "ubicacion" to editedUbicacion
+                            )
+                            
+                            db.collection("horarios").document(horario.documentId)
+                                .update(updates)
+                                .addOnSuccessListener {
+                                    Toast.makeText(context, "Horario actualizado", Toast.LENGTH_SHORT).show()
+                                    reloadTrigger++
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(context, "Error al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                        showEditDialog = false
+                        horarioToEdit = null
+                    }
+                ) {
+                    Text("Guardar", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { 
+                        showEditDialog = false
+                        horarioToEdit = null
+                    }
+                ) {
+                    Text("Cancelar", color = Color.White)
+                }
+            },
+            containerColor = Color(0xFF3F4861),
+            titleContentColor = Color.White,
+            textContentColor = Color.White
+        )
     }
 }
