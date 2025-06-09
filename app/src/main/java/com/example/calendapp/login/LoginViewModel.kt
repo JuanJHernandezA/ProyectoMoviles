@@ -16,6 +16,31 @@ class LoginViewModel : ViewModel() {
     private val _loginState = MutableStateFlow(LoginState())
     val loginState: StateFlow<LoginState> = _loginState
 
+    companion object {
+        private var _currentUserEmail: String = ""
+        private var _currentUserPassword: String = ""
+
+        private fun setCurrentUserCredentials(email: String, password: String) {
+            _currentUserEmail = email
+            _currentUserPassword = password
+        }
+
+        suspend fun reautenticar(): Boolean {
+            return try {
+                if (_currentUserEmail.isNotEmpty() && _currentUserPassword.isNotEmpty()) {
+                    val auth = FirebaseAuth.getInstance()
+                    auth.signInWithEmailAndPassword(_currentUserEmail, _currentUserPassword).await()
+                    true
+                } else {
+                    false
+                }
+            } catch (e: Exception) {
+                Log.e("LoginViewModel", "Error durante la reautenticación", e)
+                false
+            }
+        }
+    }
+
     fun onEmailChanged(newEmail: String) {
         _loginState.value = _loginState.value.copy(email = newEmail)
     }
@@ -43,6 +68,9 @@ class LoginViewModel : ViewModel() {
                     )
                     return@launch
                 }
+                // Guardar las credenciales del usuario actual
+                setCurrentUserCredentials(email, password)
+                Log.d("LoginViewModel", "Credenciales guardadas para el usuario: $email")
 
                 Log.d("LoginViewModel", "Intentando iniciar sesión con email: $email")
                 val result = auth.signInWithEmailAndPassword(email, password).await()
@@ -58,10 +86,10 @@ class LoginViewModel : ViewModel() {
                     Log.d("LoginViewModel", "Datos obtenidos - Nombre: $nombre, Rol: $rol, Cédula: $cedula")
                     
                     if (rol.isEmpty()) {
-                        Log.e("LoginViewModel", "Error: Rol de usuario no encontrado")
+                        Log.e("LoginViewModel", "Error: usuario no encontrado")
                         _loginState.value = _loginState.value.copy(
                             isLoading = false,
-                            error = "Error: Rol de usuario no encontrado"
+                            error = "Error: usuario no encontrado"
                         )
                         return@launch
                     }
