@@ -9,12 +9,15 @@ data class UserModel(
     val telefono: String = "",
     val rol: String = "",
     val correo: String = "",
-    val contrasena: String = ""
+    val contrasena: String = "",
+    val confirmarContrasena: String = ""
 )
 
 data class UserState(
     val user: UserModel = UserModel(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val currentUserName: String = "",
+    val currentUserRole: String = ""
 ) 
