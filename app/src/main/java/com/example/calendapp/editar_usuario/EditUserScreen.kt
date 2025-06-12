@@ -100,7 +100,7 @@ fun EditUserScreenContent(
                     text = user.rol.replaceFirstChar { it.uppercase() },
                     fontSize = 14.sp,
                     color = AccentColor
-                )01
+                )
             }
         }
 
