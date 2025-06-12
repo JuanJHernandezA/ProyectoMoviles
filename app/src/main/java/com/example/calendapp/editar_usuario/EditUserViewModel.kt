@@ -44,7 +44,8 @@ class EditUserViewModel : ViewModel() {
                         nombre = userDoc.getString("nombre") ?: "",
                         apellido = userDoc.getString("apellido") ?: "",
                         telefono = userDoc.getString("telefono") ?: "",
-                        genero = userDoc.getString("genero") ?: ""
+                        genero = userDoc.getString("genero") ?: "",
+                        rol = userDoc.getString("rol") ?: ""
                     ),
                     isLoading = false
                 )
@@ -66,7 +67,8 @@ class EditUserViewModel : ViewModel() {
                 nombre = if (field == "nombre") value else _userState.value.user.nombre,
                 apellido = if (field == "apellido") value else _userState.value.user.apellido,
                 telefono = if (field == "telefono") value else _userState.value.user.telefono,
-                genero = if (field == "genero") value else _userState.value.user.genero
+                genero = if (field == "genero") value else _userState.value.user.genero,
+                rol = if (field == "rol") value else _userState.value.user.rol
             )
         )
     }
@@ -125,7 +127,8 @@ class EditUserViewModel : ViewModel() {
                     "apellido" to user.apellido,
                     "telefono" to user.telefono,
                     "genero" to user.genero,
-                    "email" to user.email
+                    "email" to user.email,
+                    "rol" to user.rol
                 ) as Map<String, Any>
 
                 // Primero intentamos actualizar el documento
