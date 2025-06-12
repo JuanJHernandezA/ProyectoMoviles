@@ -96,7 +96,11 @@ fun EditUserScreenContent(
 
             Column(modifier = Modifier.padding(start = 16.dp)) {
                 Text(text = user.nombre, fontSize = 20.sp, color = White)
-                Text(text = "Usuario", fontSize = 14.sp, color = AccentColor)
+                Text(
+                    text = user.rol.replaceFirstChar { it.uppercase() },
+                    fontSize = 14.sp,
+                    color = AccentColor
+                )
             }
         }
 
