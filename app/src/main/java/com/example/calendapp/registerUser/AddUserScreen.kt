@@ -26,6 +26,7 @@ import com.example.calendapp.login.LoginScreen
 import com.example.calendapp.login.LoginViewModel
 import com.example.calendapp.ui.theme.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 
 
 //@Preview()
@@ -109,25 +110,33 @@ fun AddUserScreen(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = userState.user.correo,
-                onValueChange = { viewModel.onFieldChanged("correo", it) },
-                label = { Text("", color = White) },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                textStyle = TextStyle(color = White),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Border,
-                    unfocusedBorderColor = White.copy(alpha = 0.5f),
-                    cursorColor = Border,
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedLabelColor = ButtonBackground,
-                    unfocusedLabelColor = White.copy(alpha = 0.5f)
-                ),
-                enabled = !userState.isLoading
-            )
+                    .padding(horizontal = 16.dp)
+                    .border(3.dp, Border, RoundedCornerShape(8.dp))
+            ) {
+                OutlinedTextField(
+                    value = userState.user.correo,
+                    onValueChange = { viewModel.onFieldChanged("correo", it) },
+                    label = { Text("", color = White) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
+                    textStyle = TextStyle(color = White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Border,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedLabelColor = Border,
+                        unfocusedLabelColor = White.copy(alpha = 0.5f)
+                    ),
+                    enabled = !userState.isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -138,26 +147,34 @@ fun AddUserScreen(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = userState.user.contrasena,
-                onValueChange = { viewModel.onFieldChanged("contrasena", it) },
-                label = { Text("", color = White) },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                textStyle = TextStyle(color = White),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Border,
-                    unfocusedBorderColor = White.copy(alpha = 0.5f),
-                    cursorColor = Border,
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedLabelColor = ButtonBackground,
-                    unfocusedLabelColor = White.copy(alpha = 0.5f)
-                ),
-                visualTransformation = PasswordVisualTransformation(),
-                enabled = !userState.isLoading
-            )
+                    .padding(horizontal = 16.dp)
+                    .border(3.dp, Border, RoundedCornerShape(8.dp))
+            ) {
+                OutlinedTextField(
+                    value = userState.user.contrasena,
+                    onValueChange = { viewModel.onFieldChanged("contrasena", it) },
+                    label = { Text("", color = White) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
+                    textStyle = TextStyle(color = White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Border,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedLabelColor = Border,
+                        unfocusedLabelColor = White.copy(alpha = 0.5f)
+                    ),
+                    visualTransformation = PasswordVisualTransformation(),
+                    enabled = !userState.isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -168,26 +185,34 @@ fun AddUserScreen(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = userState.user.confirmarContrasena,
-                onValueChange = { viewModel.onFieldChanged("confirmarContrasena", it) },
-                label = { Text("", color = White) },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                textStyle = TextStyle(color = White),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Border,
-                    unfocusedBorderColor = White.copy(alpha = 0.5f),
-                    cursorColor = Border,
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedLabelColor = ButtonBackground,
-                    unfocusedLabelColor = White.copy(alpha = 0.5f)
-                ),
-                visualTransformation = PasswordVisualTransformation(),
-                enabled = !userState.isLoading
-            )
+                    .padding(horizontal = 16.dp)
+                    .border(3.dp, Border, RoundedCornerShape(8.dp))
+            ) {
+                OutlinedTextField(
+                    value = userState.user.confirmarContrasena,
+                    onValueChange = { viewModel.onFieldChanged("confirmarContrasena", it) },
+                    label = { Text("", color = White) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
+                    textStyle = TextStyle(color = White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Border,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedLabelColor = Border,
+                        unfocusedLabelColor = White.copy(alpha = 0.5f)
+                    ),
+                    visualTransformation = PasswordVisualTransformation(),
+                    enabled = !userState.isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -198,25 +223,33 @@ fun AddUserScreen(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = userState.user.nombre,
-                onValueChange = { viewModel.onFieldChanged("nombre", it) },
-                label = { Text("", color = White) },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                textStyle = TextStyle(color = White),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Border,
-                    unfocusedBorderColor = White.copy(alpha = 0.5f),
-                    cursorColor = Border,
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedLabelColor = ButtonBackground,
-                    unfocusedLabelColor = White.copy(alpha = 0.5f)
-                ),
-                enabled = !userState.isLoading
-            )
+                    .padding(horizontal = 16.dp)
+                    .border(3.dp, Border, RoundedCornerShape(8.dp))
+            ) {
+                OutlinedTextField(
+                    value = userState.user.nombre,
+                    onValueChange = { viewModel.onFieldChanged("nombre", it) },
+                    label = { Text("", color = White) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
+                    textStyle = TextStyle(color = White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Border,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedLabelColor = Border,
+                        unfocusedLabelColor = White.copy(alpha = 0.5f)
+                    ),
+                    enabled = !userState.isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -227,25 +260,33 @@ fun AddUserScreen(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = userState.user.apellido,
-                onValueChange = { viewModel.onFieldChanged("apellido", it) },
-                label = { Text("", color = White) },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                textStyle = TextStyle(color = White),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Border,
-                    unfocusedBorderColor = White.copy(alpha = 0.5f),
-                    cursorColor = Border,
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedLabelColor = ButtonBackground,
-                    unfocusedLabelColor = White.copy(alpha = 0.5f)
-                ),
-                enabled = !userState.isLoading
-            )
+                    .padding(horizontal = 16.dp)
+                    .border(3.dp, Border, RoundedCornerShape(8.dp))
+            ) {
+                OutlinedTextField(
+                    value = userState.user.apellido,
+                    onValueChange = { viewModel.onFieldChanged("apellido", it) },
+                    label = { Text("", color = White) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
+                    textStyle = TextStyle(color = White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Border,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedLabelColor = Border,
+                        unfocusedLabelColor = White.copy(alpha = 0.5f)
+                    ),
+                    enabled = !userState.isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -256,25 +297,33 @@ fun AddUserScreen(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = userState.user.telefono,
-                onValueChange = { viewModel.onFieldChanged("telefono", it) },
-                label = { Text("", color = White) },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                textStyle = TextStyle(color = White),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Border,
-                    unfocusedBorderColor = White.copy(alpha = 0.5f),
-                    cursorColor = Border,
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedLabelColor = ButtonBackground,
-                    unfocusedLabelColor = White.copy(alpha = 0.5f)
-                ),
-                enabled = !userState.isLoading
-            )
+                    .padding(horizontal = 16.dp)
+                    .border(3.dp, Border, RoundedCornerShape(8.dp))
+            ) {
+                OutlinedTextField(
+                    value = userState.user.telefono,
+                    onValueChange = { viewModel.onFieldChanged("telefono", it) },
+                    label = { Text("", color = White) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
+                    textStyle = TextStyle(color = White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Border,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedLabelColor = Border,
+                        unfocusedLabelColor = White.copy(alpha = 0.5f)
+                    ),
+                    enabled = !userState.isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -285,25 +334,33 @@ fun AddUserScreen(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = userState.user.genero,
-                onValueChange = { viewModel.onFieldChanged("genero", it) },
-                label = { Text("", color = White) },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                textStyle = TextStyle(color = White),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Border,
-                    unfocusedBorderColor = White.copy(alpha = 0.5f),
-                    cursorColor = Border,
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedLabelColor = ButtonBackground,
-                    unfocusedLabelColor = White.copy(alpha = 0.5f)
-                ),
-                enabled = !userState.isLoading
-            )
+                    .padding(horizontal = 16.dp)
+                    .border(3.dp, Border, RoundedCornerShape(8.dp))
+            ) {
+                OutlinedTextField(
+                    value = userState.user.genero,
+                    onValueChange = { viewModel.onFieldChanged("genero", it) },
+                    label = { Text("", color = White) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
+                    textStyle = TextStyle(color = White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Border,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedLabelColor = Border,
+                        unfocusedLabelColor = White.copy(alpha = 0.5f)
+                    ),
+                    enabled = !userState.isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -314,25 +371,33 @@ fun AddUserScreen(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = userState.user.edad,
-                onValueChange = { viewModel.onFieldChanged("edad", it) },
-                label = { Text("", color = White) },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                textStyle = TextStyle(color = White),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Border,
-                    unfocusedBorderColor = White.copy(alpha = 0.5f),
-                    cursorColor = Border,
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedLabelColor = ButtonBackground,
-                    unfocusedLabelColor = White.copy(alpha = 0.5f)
-                ),
-                enabled = !userState.isLoading
-            )
+                    .padding(horizontal = 16.dp)
+                    .border(3.dp, Border, RoundedCornerShape(8.dp))
+            ) {
+                OutlinedTextField(
+                    value = userState.user.edad,
+                    onValueChange = { viewModel.onFieldChanged("edad", it) },
+                    label = { Text("", color = White) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
+                    textStyle = TextStyle(color = White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Border,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedLabelColor = Border,
+                        unfocusedLabelColor = White.copy(alpha = 0.5f)
+                    ),
+                    enabled = !userState.isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -343,25 +408,33 @@ fun AddUserScreen(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = userState.user.cedula,
-                onValueChange = { viewModel.onFieldChanged("cedula", it) },
-                label = { Text("", color = White) },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                textStyle = TextStyle(color = White),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Border,
-                    unfocusedBorderColor = White.copy(alpha = 0.5f),
-                    cursorColor = Border,
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedLabelColor = ButtonBackground,
-                    unfocusedLabelColor = White.copy(alpha = 0.5f)
-                ),
-                enabled = !userState.isLoading
-            )
+                    .padding(horizontal = 16.dp)
+                    .border(3.dp, Border, RoundedCornerShape(8.dp))
+            ) {
+                OutlinedTextField(
+                    value = userState.user.cedula,
+                    onValueChange = { viewModel.onFieldChanged("cedula", it) },
+                    label = { Text("", color = White) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
+                    textStyle = TextStyle(color = White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Border,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedLabelColor = Border,
+                        unfocusedLabelColor = White.copy(alpha = 0.5f)
+                    ),
+                    enabled = !userState.isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -372,25 +445,33 @@ fun AddUserScreen(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = userState.user.rol,
-                onValueChange = { viewModel.onFieldChanged("rol", it) },
-                label = { Text("", color = White) },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                textStyle = TextStyle(color = White),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Border,
-                    unfocusedBorderColor = White.copy(alpha = 0.5f),
-                    cursorColor = Border,
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedLabelColor = ButtonBackground,
-                    unfocusedLabelColor = White.copy(alpha = 0.5f)
-                ),
-                enabled = !userState.isLoading
-            )
+                    .padding(horizontal = 16.dp)
+                    .border(3.dp, Border, RoundedCornerShape(8.dp))
+            ) {
+                OutlinedTextField(
+                    value = userState.user.rol,
+                    onValueChange = { viewModel.onFieldChanged("rol", it) },
+                    label = { Text("", color = White) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
+                    textStyle = TextStyle(color = White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Border,
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedLabelColor = Border,
+                        unfocusedLabelColor = White.copy(alpha = 0.5f)
+                    ),
+                    enabled = !userState.isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
