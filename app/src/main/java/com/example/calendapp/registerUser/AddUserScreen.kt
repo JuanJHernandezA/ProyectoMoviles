@@ -451,26 +451,42 @@ fun AddUserScreen(
                     .padding(horizontal = 16.dp)
                     .border(3.dp, Border, RoundedCornerShape(8.dp))
             ) {
-                OutlinedTextField(
-                    value = userState.user.rol,
-                    onValueChange = { viewModel.onFieldChanged("rol", it) },
-                    label = { Text("", color = White) },
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(BackgroundColor, RoundedCornerShape(8.dp)),
-                    textStyle = TextStyle(color = White),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
-                        cursorColor = Border,
-                        focusedTextColor = White,
-                        unfocusedTextColor = White,
-                        focusedLabelColor = Border,
-                        unfocusedLabelColor = White.copy(alpha = 0.5f)
-                    ),
-                    enabled = !userState.isLoading,
-                    shape = RoundedCornerShape(8.dp)
-                )
+                        .background(BackgroundColor, RoundedCornerShape(8.dp))
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Usuario",
+                            color = if (userState.user.rol.lowercase() == "usuario") White else White.copy(alpha = 0.5f),
+                            fontSize = 16.sp
+                        )
+                        Switch(
+                            checked = userState.user.rol.lowercase() == "admin",
+                            onCheckedChange = { isAdmin ->
+                                viewModel.onFieldChanged("rol", if (isAdmin) "admin" else "usuario")
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = White,
+                                checkedTrackColor = AccentColor,
+                                uncheckedThumbColor = White,
+                                uncheckedTrackColor = Border
+                            )
+                        )
+                        Text(
+                            text = "Admin",
+                            color = if (userState.user.rol.lowercase() == "admin") White else White.copy(alpha = 0.5f),
+                            fontSize = 16.sp
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

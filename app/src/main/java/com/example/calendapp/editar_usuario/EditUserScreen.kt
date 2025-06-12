@@ -3,6 +3,7 @@ package com.example.calendapp.editar_usuario
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -43,13 +44,7 @@ fun EditUserScreen(
     }
 
     EditUserScreenContent(
-        email = userState.email,
-        password = userState.password,
-        confirmPassword = userState.confirmPassword,
-        nombre = userState.nombre,
-        apellido = userState.apellido,
-        telefono = userState.telefono,
-        genero = userState.genero,
+        user = userState.user,
         isLoading = userState.isLoading,
         error = userState.error,
         onFieldChanged = viewModel::onFieldChanged,
@@ -60,13 +55,7 @@ fun EditUserScreen(
 
 @Composable
 fun EditUserScreenContent(
-    email: String,
-    password: String,
-    confirmPassword: String,
-    nombre: String,
-    apellido: String,
-    telefono: String,
-    genero: String,
+    user: EditUserModel,
     isLoading: Boolean,
     error: String?,
     onFieldChanged: (String, String) -> Unit,
@@ -106,7 +95,7 @@ fun EditUserScreenContent(
             )
 
             Column(modifier = Modifier.padding(start = 16.dp)) {
-                Text(text = nombre, fontSize = 20.sp, color = White)
+                Text(text = user.nombre, fontSize = 20.sp, color = White)
                 Text(text = "Usuario", fontSize = 14.sp, color = AccentColor)
             }
         }
@@ -124,46 +113,46 @@ fun EditUserScreenContent(
 
             EditUserFormField(
                 label = "Correo electrónico",
-                value = email,
+                value = user.email,
                 onValueChange = { onFieldChanged("email", it) },
                 keyboardType = KeyboardType.Email,
                 enabled = false
             )
             EditUserFormField(
                 label = "Contraseña",
-                value = password,
+                value = user.password,
                 onValueChange = { onFieldChanged("password", it) },
                 keyboardType = KeyboardType.Password,
                 isPassword = true
             )
             EditUserFormField(
                 label = "Confirmación de contraseña",
-                value = confirmPassword,
+                value = user.confirmPassword,
                 onValueChange = { onFieldChanged("confirmPassword", it) },
                 keyboardType = KeyboardType.Password,
                 isPassword = true
             )
             EditUserFormField(
                 label = "Nombre",
-                value = nombre,
+                value = user.nombre,
                 onValueChange = { onFieldChanged("nombre", it) },
                 keyboardType = KeyboardType.Text
             )
             EditUserFormField(
                 label = "Apellido",
-                value = apellido,
+                value = user.apellido,
                 onValueChange = { onFieldChanged("apellido", it) },
                 keyboardType = KeyboardType.Text
             )
             EditUserFormField(
-                label = "Número de teléfono",
-                value = telefono,
+                label = "Número de celular",
+                value = user.telefono,
                 onValueChange = { onFieldChanged("telefono", it) },
                 keyboardType = KeyboardType.Phone
             )
             EditUserFormField(
                 label = "Género",
-                value = genero,
+                value = user.genero,
                 onValueChange = { onFieldChanged("genero", it) },
                 keyboardType = KeyboardType.Text
             )
@@ -217,14 +206,19 @@ fun EditUserFormField(
         onValueChange = onValueChange,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 4.dp),
+            .padding(top = 4.dp)
+            .border(
+                width = 2.dp,
+                color = Border,
+                shape = MaterialTheme.shapes.small
+            ),
         textStyle = TextStyle(color = White),
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         enabled = enabled,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Border,
-            unfocusedBorderColor = White.copy(alpha = 0.5f),
+            unfocusedBorderColor = Border,
             cursorColor = Border,
             focusedTextColor = White,
             unfocusedTextColor = White,
