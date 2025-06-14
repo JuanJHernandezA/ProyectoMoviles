@@ -1,8 +1,10 @@
 package com.example.calendapp.agregar_calendario.view
 
 import android.app.TimePickerDialog
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -210,28 +212,36 @@ fun AgregarCalendarioUI(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Campo: Nombre del usuario
-                    Box {
-                        OutlinedTextField(
-                            value = viewModel.nombreUsuario.value,
-                            onValueChange = { viewModel.actualizarNombreUsuario(it) },
-                            label = { Text("Escribe el nombre del usuario", color = Color.White) },
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFF2A3C53),
-                                unfocusedContainerColor = Color(0xFF2A3C53),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedIndicatorColor = Color.White,
-                                unfocusedIndicatorColor = Color.Gray,
-                                focusedLabelColor = Color.Gray,
-                                unfocusedLabelColor = Color.Gray,
-                                disabledTextColor = Color.White,
-                                disabledContainerColor = Color(0xFF2A3C53),
-                                disabledIndicatorColor = Color.Gray
-                            )
+                    OutlinedTextField(
+                        value = viewModel.nombreUsuario.value,
+                        onValueChange = { viewModel.actualizarNombreUsuario(it) },
+                        label = { Text("Escribe el nombre del usuario", color = Color.White) },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFF2A3C53),
+                            unfocusedContainerColor = Color(0xFF2A3C53),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedIndicatorColor = Color(0xFF0077FF),
+                            unfocusedIndicatorColor = Color(0xFF0077FF),
+                            focusedLabelColor = Color.Gray,
+                            unfocusedLabelColor = Color.Gray,
+                            disabledTextColor = Color.White,
+                            disabledContainerColor = Color(0xFF2A3C53),
+                            disabledIndicatorColor = Color(0xFF0077FF)
+                        )
+                    )
+                    if (viewModel.mostrarErrores.value && viewModel.nombreUsuario.value.isBlank()) {
+                        Text(
+                            text = "El nombre del usuario es obligatorio",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 2.dp)
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     // Campo: Usuarios asignados
                     OutlinedTextField(
@@ -256,15 +266,25 @@ fun AgregarCalendarioUI(
                             unfocusedContainerColor = Color(0xFF2A3C53),
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
-                            focusedIndicatorColor = Color.White,
-                            unfocusedIndicatorColor = Color.Gray,
+                            focusedIndicatorColor = Color(0xFF0077FF),
+                            unfocusedIndicatorColor = Color(0xFF0077FF),
                             focusedLabelColor = Color.Gray,
                             unfocusedLabelColor = Color.Gray,
                             disabledTextColor = Color.White,
                             disabledContainerColor = Color(0xFF2A3C53),
-                            disabledIndicatorColor = Color.Gray
+                            disabledIndicatorColor = Color(0xFF0077FF)
                         )
                     )
+                    if (viewModel.mostrarErrores.value && viewModel.usuariosSeleccionados.value.isEmpty()) {
+                        Text(
+                            text = "Debes seleccionar al menos un usuario",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 2.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     // Etiqueta: Franja horaria
                     Text(
@@ -274,12 +294,18 @@ fun AgregarCalendarioUI(
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
 
+                    Spacer(modifier = Modifier.height(4.dp))
+
                     // Campos: Inicio y Fin
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(
                             onClick = { timePickerInicio.show() },
                             modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF2A3C53))
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color(0xFF2A3C53),
+                                contentColor = Color.White
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFF0077FF))
                         ) {
                             Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
                             Spacer(Modifier.width(4.dp))
@@ -289,13 +315,27 @@ fun AgregarCalendarioUI(
                         OutlinedButton(
                             onClick = { timePickerFin.show() },
                             modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF2A3C53))
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color(0xFF2A3C53),
+                                contentColor = Color.White
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFF0077FF))
                         ) {
                             Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
                             Spacer(Modifier.width(4.dp))
                             Text(viewModel.horaFin.value, color = Color.White)
                         }
                     }
+                    if (viewModel.mostrarErrores.value && (viewModel.horaInicio.value == "00:00" || viewModel.horaFin.value == "00:00")) {
+                        Text(
+                            text = "Debes seleccionar una hora de inicio y fin",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 2.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     // Campo: Fecha
                     Box(
@@ -316,14 +356,24 @@ fun AgregarCalendarioUI(
                                 unfocusedContainerColor = Color(0xFF2A3C53),
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
-                                focusedIndicatorColor = Color.White,
-                                unfocusedIndicatorColor = Color.Gray,
+                                focusedIndicatorColor = Color(0xFF0077FF),
+                                unfocusedIndicatorColor = Color(0xFF0077FF),
                                 disabledTextColor = Color.White,
                                 disabledContainerColor = Color(0xFF2A3C53),
-                                disabledIndicatorColor = Color.Gray
+                                disabledIndicatorColor = Color(0xFF0077FF)
                             )
                         )
                     }
+                    if (viewModel.mostrarErrores.value && viewModel.fechasSeleccionadas.value.isEmpty()) {
+                        Text(
+                            text = "Debes seleccionar al menos una fecha",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 2.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     // Campo: Ubicación
                     OutlinedTextField(
@@ -337,12 +387,22 @@ fun AgregarCalendarioUI(
                             unfocusedContainerColor = Color(0xFF2A3C53),
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
-                            focusedIndicatorColor = Color.White,
-                            unfocusedIndicatorColor = Color.Gray,
+                            focusedIndicatorColor = Color(0xFF0077FF),
+                            unfocusedIndicatorColor = Color(0xFF0077FF),
                             focusedLabelColor = Color.Gray,
                             unfocusedLabelColor = Color.Gray
                         )
                     )
+                    if (viewModel.mostrarErrores.value && viewModel.ubicacion.value.isBlank()) {
+                        Text(
+                            text = "La ubicación es obligatoria",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 2.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     // Campo: Descripción
                     OutlinedTextField(
@@ -356,12 +416,20 @@ fun AgregarCalendarioUI(
                             unfocusedContainerColor = Color(0xFF2A3C53),
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
-                            focusedIndicatorColor = Color.White,
-                            unfocusedIndicatorColor = Color.Gray,
+                            focusedIndicatorColor = Color(0xFF0077FF),
+                            unfocusedIndicatorColor = Color(0xFF0077FF),
                             focusedLabelColor = Color.Gray,
                             unfocusedLabelColor = Color.Gray
                         )
                     )
+                    if (viewModel.mostrarErrores.value && viewModel.descripcion.value.isBlank()) {
+                        Text(
+                            text = "La descripción es obligatoria",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 2.dp)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.weight(1f))
 
