@@ -102,7 +102,7 @@ fun CalendarioDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    listOf("L", "M", "X", "J", "V", "S", "D").forEach { dia ->
+                    listOf("D", "L", "M", "X", "J", "V", "S").forEach { dia ->
                         Text(
                             text = dia,
                             color = Color.White,

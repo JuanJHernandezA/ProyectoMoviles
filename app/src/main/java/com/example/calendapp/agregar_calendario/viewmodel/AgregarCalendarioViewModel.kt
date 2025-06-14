@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.*
 
 class AgregarCalendarioViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
@@ -31,6 +33,7 @@ class AgregarCalendarioViewModel : ViewModel() {
     val mostrarVentanaSugerencias = mutableStateOf(false)
     val mostrarVentanaAsignados = mutableStateOf(false)
     val mostrarCalendario = mutableStateOf(false)
+    val mostrarErrores = mutableStateOf(false)
 
     // Estado para mensajes
     val mensajeError = mutableStateOf<String?>(null)
@@ -163,19 +166,32 @@ class AgregarCalendarioViewModel : ViewModel() {
 
     // Método para guardar el calendario
     fun guardarCalendario() {
+        mostrarErrores.value = true
         viewModelScope.launch {
             try {
                 // Validar campos requeridos
+                if (nombreUsuario.value.isBlank()) {
+                    mensajeError.value = "El nombre del usuario es obligatorio"
+                    return@launch
+                }
                 if (usuariosSeleccionados.value.isEmpty()) {
                     mensajeError.value = "Debe seleccionar al menos un usuario"
+                    return@launch
+                }
+                if (horaInicio.value == "00:00" || horaFin.value == "00:00") {
+                    mensajeError.value = "Debe seleccionar una hora de inicio y fin"
                     return@launch
                 }
                 if (fechasSeleccionadas.value.isEmpty()) {
                     mensajeError.value = "Debe seleccionar al menos una fecha"
                     return@launch
                 }
+                if (ubicacion.value.isBlank()) {
+                    mensajeError.value = "La ubicación es obligatoria"
+                    return@launch
+                }
                 if (descripcion.value.isBlank()) {
-                    mensajeError.value = "Debe ingresar una descripción"
+                    mensajeError.value = "La descripción es obligatoria"
                     return@launch
                 }
 
@@ -208,15 +224,21 @@ class AgregarCalendarioViewModel : ViewModel() {
                     // Crear la notificación para este usuario
                     val notificacionData = hashMapOf(
                         "cedulaEmpleado" to usuario.cedula,
-                        "descripcion" to descripcion.value,
-                        "fecha" to com.google.firebase.Timestamp.now(),
-                        "tipoNotificacion" to "Nuevo Horario"
+                        "descripcion" to "Nuevo horario asignado: ${descripcion.value}",
+                        "fecha" to SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date()),
+                        "tipoNotificacion" to "Nuevo Horario",
+                        "horaInicio" to horaInicio.value,
+                        "horaFin" to horaFin.value,
+                        "ubicacion" to ubicacion.value,
+                        "fechas" to fechasSeleccionadas.value
                     )
+                    Log.d("AgregarCalendario", "Guardando notificación: $notificacionData")
                     db.collection("notificaciones").add(notificacionData).await()
                 }
 
                 // Limpiar los campos después de guardar exitosamente
                 limpiarCampos()
+                mostrarErrores.value = false
                 mensajeExito.value = "Horario guardado exitosamente"
                 mensajeError.value = null
             } catch (e: Exception) {
@@ -231,5 +253,6 @@ class AgregarCalendarioViewModel : ViewModel() {
     fun limpiarMensajes() {
         mensajeError.value = null
         mensajeExito.value = null
+        mostrarErrores.value = false
     }
 } 
