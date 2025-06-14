@@ -22,36 +22,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.calendapp.R
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.calendapp.administrador.model.Horario
+import com.example.calendapp.administrador.viewmodel.AdministradorViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.calendapp.administrador.model.EventoConPosicion
 import kotlinx.coroutines.launch
-
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.net.URL
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
-
-import com.google.firebase.Timestamp
-
-import kotlinx.coroutines.tasks.await
-
-
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdministradorScreen(navController: NavHostController) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val viewModel: AdministradorViewModel = viewModel()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -101,9 +85,7 @@ fun AdministradorScreen(navController: NavHostController) {
                     modifier = Modifier.fillMaxWidth().height(150.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                HorariosContent(Modifier.weight(1f))
-
-
+                HorariosContent(Modifier.weight(1f), viewModel)
             }
         }
     }
@@ -149,6 +131,7 @@ fun DrawerItem(text: String, icon: ImageVector, onClick: () -> Unit) {
         Text(text, color = Color.White)
     }
 }
+
 fun String.toHourDecimal(): Float {
     val parts = this.split(":")
     val hour = parts.getOrNull(0)?.toIntOrNull() ?: 0
@@ -157,27 +140,20 @@ fun String.toHourDecimal(): Float {
 }
 
 @Composable
-fun HorariosContent(modifier: Modifier = Modifier) {
+fun HorariosContent(modifier: Modifier = Modifier, viewModel: AdministradorViewModel) {
     val context = LocalContext.current
-    val db = remember { FirebaseFirestore.getInstance() }
-    var weatherInfo by remember { mutableStateOf<String?>(null) }
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
-    var horarioToDelete by remember { mutableStateOf<Horario?>(null) }
-    var reloadTrigger by remember { mutableStateOf(0) }
-    
-    // Variables para el diálogo de edición
-    var showEditDialog by remember { mutableStateOf(false) }
-    var horarioToEdit by remember { mutableStateOf<Horario?>(null) }
-    var editedDescripcion by remember { mutableStateOf("") }
-    var editedHoraInicio by remember { mutableStateOf("") }
-    var editedHoraFin by remember { mutableStateOf("") }
-    var editedUbicacion by remember { mutableStateOf("") }
+    var currentTime by remember { mutableStateOf("") }
+    val timeFormatter = remember {
+        SimpleDateFormat("HH:mm:ss", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("America/Bogota")
+        }
+    }
 
     // TimePickerDialogs
     val timePickerInicio = TimePickerDialog(
         context,
         { _, hour, minute ->
-            editedHoraInicio = String.format("%02d:%02d", hour, minute)
+            viewModel.updateEditedFields(horaInicio = String.format("%02d:%02d", hour, minute))
         },
         0, 0, true
     )
@@ -185,51 +161,15 @@ fun HorariosContent(modifier: Modifier = Modifier) {
     val timePickerFin = TimePickerDialog(
         context,
         { _, hour, minute ->
-            editedHoraFin = String.format("%02d:%02d", hour, minute)
+            viewModel.updateEditedFields(horaFin = String.format("%02d:%02d", hour, minute))
         },
         0, 0, true
     )
 
-    val dateFormatter = remember {
-        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("America/Bogota")
-        }
-    }
-
-    var selectedDate by remember { mutableStateOf(dateFormatter.format(Date())) }
-    var horarios by remember { mutableStateOf<List<Horario>>(emptyList()) }
-    var loading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    val timeFormatter = remember {
-        SimpleDateFormat("HH:mm:ss", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("America/Bogota")
-        }
-    }
-
-    var currentTime by remember { mutableStateOf(timeFormatter.format(Date())) }
-
     LaunchedEffect(Unit) {
         while (true) {
             currentTime = timeFormatter.format(Date())
-
-            try {
-                val apiKey = "304a09c76ebe4314ab0231049252105" // WeatherAPI.com API key
-                val city = "Tulua"
-                val response = withContext(Dispatchers.IO) {
-                    URL("https://api.weatherapi.com/v1/current.json?key=$apiKey&q=$city&lang=es").readText()
-                }
-                val jsonObj = JSONObject(response)
-                val current = jsonObj.getJSONObject("current")
-                val temp = current.getDouble("temp_c")
-
-
-                weatherInfo = "Tuluá: ${temp.toInt()}°C"
-            } catch (e: Exception) {
-                weatherInfo = "No se pudo cargar el clima"
-            }
-
-
+            viewModel.loadWeatherInfo()
             kotlinx.coroutines.delay(1000)
         }
     }
@@ -238,85 +178,33 @@ fun HorariosContent(modifier: Modifier = Modifier) {
     val datePickerDialog = DatePickerDialog(
         context,
         { _, year, month, dayOfMonth ->
-            selectedDate = "$year-${(month + 1).toString().padStart(2, '0')}-${dayOfMonth.toString().padStart(2, '0')}"
+            val date = String.format("%d-%02d-%02d", year, month + 1, dayOfMonth)
+            viewModel.updateSelectedDate(date)
         },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    LaunchedEffect(selectedDate, reloadTrigger) {
-        loading = true
-        errorMessage = null
-        try {
-            // Obtener todos los horarios sin filtrar por empleado
-            val snapshot = db.collection("horarios").get().await()
-
-            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone("America/Bogota")
-            }
-
-            val fetchedHorarios = snapshot.documents.mapNotNull { doc ->
-                runCatching {
-                    val fechasArray = (doc.get("fechas") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
-
-                    val todasLasFechas = mutableListOf<String>().apply {
-                        addAll(fechasArray)
-                    }
-
-                    Horario(
-                        documentId = doc.id,
-                        descripcion = doc.getString("descripcion") ?: "",
-                        empleadoId = doc.getString("empleadoId") ?: "",
-                        fecha = doc.getTimestamp("fecha")?.toDate(),
-                        fechas = fechasArray,
-                        horaInicio = doc.getString("horaInicio") ?: "",
-                        horaFin = doc.getString("horaFin") ?: "",
-                        ubicacion = doc.getString("ubicacion") ?: "",
-                        empleado = doc.getString("empleado") ?: ""
-                    ) to todasLasFechas
-                }.getOrNull()
-            }.filter { (_, fechasList) ->
-                fechasList.any { fecha -> fecha == selectedDate }
-            }.map { it.first }
-
-            horarios = fetchedHorarios
-        } catch (e: Exception) {
-            errorMessage = "Error al cargar horarios: ${e.localizedMessage}"
-            horarios = emptyList()
-        } finally {
-            loading = false
-        }
-    }
-
-    val startHour = 0
-    val endHour = 24
-    val hourHeightDp = 60.dp
-
-    val backgroundColor = Color(0xFF1A1E29)
-    val timelineColor = Color(0xFF3F4861)
-    val headerColor = Color(0xFF132D46)
-    val headerTextColor = Color.White
-
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(Color(0xFF1A1E29))
             .padding(16.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .background(headerColor)
+                .background(Color(0xFF132D46))
                 .padding(8.dp)
         ) {
-            val clima = weatherInfo ?: "Cargando clima..."
+            val clima = viewModel.weatherInfo?.let { "${it.city}: ${it.temperature}°C" } ?: "Cargando clima..."
             Text(
-                text = "Fecha: $selectedDate \nHora actual: $currentTime \n$clima",
+                text = "Fecha: ${viewModel.selectedDate} \nHora actual: $currentTime \n$clima",
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
-                color = headerTextColor,
+                color = Color.White,
                 modifier = Modifier.weight(1f)
             )
             Button(onClick = { datePickerDialog.show() }) {
@@ -326,16 +214,16 @@ fun HorariosContent(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (loading) {
+        if (viewModel.loading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
             return@Column
         }
 
-        if (errorMessage != null) {
+        if (viewModel.errorMessage != null) {
             Text(
-                text = errorMessage ?: "",
+                text = viewModel.errorMessage ?: "",
                 color = Color.Red,
                 modifier = Modifier.padding(8.dp)
             )
@@ -350,22 +238,21 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                 .weight(1f)
                 .horizontalScroll(scrollState)
         ) {
-            val totalWidthDp = if (5> horarios.size && horarios.size> 1) 500.dp else if (horarios.size>5) 800.dp else 380.dp
-
+            val totalWidthDp = if (5 > viewModel.horarios.size && viewModel.horarios.size > 1) 500.dp else if (viewModel.horarios.size > 5) 800.dp else 400.dp
 
             Box(
                 modifier = Modifier
                     .width(totalWidthDp)
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
-                    .background(timelineColor)
+                    .background(Color(0xFF3F4861))
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    for (hour in startHour..endHour) {
+                    for (hour in 0..24) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(hourHeightDp)
+                                .height(60.dp)
                                 .border(0.5.dp, Color.Gray),
                             verticalAlignment = Alignment.Top
                         ) {
@@ -387,15 +274,8 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                     }
                 }
 
-                // ==== Posicionar eventos correctamente con columnas ====
-                data class EventoConPosicion(
-                    val horario: Horario,
-                    val columna: Int,
-                    val totalColumnas: Int
-                )
-
                 val eventosConPosicion = mutableListOf<EventoConPosicion>()
-                val ordenados = horarios.sortedBy { it.horaInicio.toHourDecimal() }
+                val ordenados = viewModel.horarios.sortedBy { it.horaInicio.toHourDecimal() }
                 val columnas = mutableListOf<MutableList<Horario>>()
 
                 ordenados.forEach { horario ->
@@ -407,8 +287,6 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                             }) {
                             columna.add(horario)
                             eventosConPosicion.add(EventoConPosicion(horario, i, -1))
-
-
                             colocado = true
                             break
                         }
@@ -418,10 +296,12 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                         eventosConPosicion.add(EventoConPosicion(horario, columnas.lastIndex, columnas.size))
                     }
                 }
+
                 val maxColumnas = columnas.size
                 val eventosFinal = eventosConPosicion.map {
                     it.copy(totalColumnas = maxColumnas)
                 }
+
                 eventosFinal.forEach { evento ->
                     val horario = evento.horario
                     val columna = evento.columna
@@ -430,13 +310,13 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                     val start = horario.horaInicio.toHourDecimal()
                     val end = horario.horaFin.toHourDecimal()
 
-                    if (end <= startHour || start >= endHour) return@forEach
+                    if (end <= 0 || start >= 24) return@forEach
 
-                    val clampedStart = start.coerceIn(startHour.toFloat(), endHour.toFloat())
-                    val clampedEnd = end.coerceIn(startHour.toFloat(), endHour.toFloat())
+                    val clampedStart = start.coerceIn(0f, 24f)
+                    val clampedEnd = end.coerceIn(0f, 24f)
 
-                    val topOffset = ((clampedStart - startHour) * hourHeightDp.value).dp
-                    val boxHeight = ((clampedEnd - clampedStart) * hourHeightDp.value).dp
+                    val topOffset = ((clampedStart - 0) * 60.dp.value).dp
+                    val boxHeight = ((clampedEnd - clampedStart) * 60.dp.value).dp
 
                     val columnWidth = ((totalWidthDp - 60.dp) / totalColumnas)
                     val cardColor = Color(0xA18682F5)
@@ -466,14 +346,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                                 )
                                 Row {
                                     IconButton(
-                                        onClick = {
-                                            horarioToEdit = horario
-                                            editedDescripcion = horario.descripcion
-                                            editedHoraInicio = horario.horaInicio
-                                            editedHoraFin = horario.horaFin
-                                            editedUbicacion = horario.ubicacion
-                                            showEditDialog = true
-                                        },
+                                        onClick = { viewModel.showEditDialog(horario) },
                                         modifier = Modifier.size(20.dp)
                                     ) {
                                         Icon(
@@ -485,10 +358,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                                     }
                                     Spacer(modifier = Modifier.width(4.dp))
                                     IconButton(
-                                        onClick = {
-                                            horarioToDelete = horario
-                                            showDeleteConfirmation = true
-                                        },
+                                        onClick = { viewModel.showDeleteConfirmation(horario) },
                                         modifier = Modifier.size(20.dp)
                                     ) {
                                         Icon(
@@ -524,42 +394,22 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         }
     }
 
-    // Add the confirmation dialog
-    if (showDeleteConfirmation && horarioToDelete != null) {
+    // Delete Confirmation Dialog
+    if (viewModel.showDeleteConfirmation) {
         AlertDialog(
-            onDismissRequest = { 
-                showDeleteConfirmation = false
-                horarioToDelete = null
-            },
+            onDismissRequest = { viewModel.hideDeleteConfirmation() },
             title = { Text("Confirmar eliminación") },
             text = { Text("¿Está seguro que desea eliminar este horario?") },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        horarioToDelete?.let { horario ->
-                            db.collection("horarios").document(horario.documentId)
-                                .delete()
-                                .addOnSuccessListener {
-                                    Toast.makeText(context, "Horario eliminado", Toast.LENGTH_SHORT).show()
-                                    reloadTrigger++ // Trigger reload after successful deletion
-                                }
-                                .addOnFailureListener { e ->
-                                    Toast.makeText(context, "Error al eliminar: ${e.message}", Toast.LENGTH_SHORT).show()
-                                }
-                        }
-                        showDeleteConfirmation = false
-                        horarioToDelete = null
-                    }
+                    onClick = { viewModel.deleteHorario(context) }
                 ) {
                     Text("Sí", color = Color.Red)
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { 
-                        showDeleteConfirmation = false
-                        horarioToDelete = null
-                    }
+                    onClick = { viewModel.hideDeleteConfirmation() }
                 ) {
                     Text("No")
                 }
@@ -567,13 +417,10 @@ fun HorariosContent(modifier: Modifier = Modifier) {
         )
     }
 
-    // Diálogo de edición
-    if (showEditDialog && horarioToEdit != null) {
+    // Edit Dialog
+    if (viewModel.showEditDialog) {
         AlertDialog(
-            onDismissRequest = { 
-                showEditDialog = false
-                horarioToEdit = null
-            },
+            onDismissRequest = { viewModel.hideEditDialog() },
             title = { 
                 Text(
                     "Editar Horario",
@@ -587,8 +434,8 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                         .padding(8.dp)
                 ) {
                     OutlinedTextField(
-                        value = editedDescripcion,
-                        onValueChange = { editedDescripcion = it },
+                        value = viewModel.editedDescripcion,
+                        onValueChange = { viewModel.updateEditedFields(descripcion = it) },
                         label = { Text("Descripción", color = Color.White) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -612,7 +459,7 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                         Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            "Hora Inicio: ${editedHoraInicio}",
+                            "Hora Inicio: ${viewModel.editedHoraInicio}",
                             color = Color.White
                         )
                     }
@@ -627,14 +474,14 @@ fun HorariosContent(modifier: Modifier = Modifier) {
                         Icon(Icons.Default.AccessTime, contentDescription = null, tint = Color.White)
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            "Hora Fin: ${editedHoraFin}",
+                            "Hora Fin: ${viewModel.editedHoraFin}",
                             color = Color.White
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
-                        value = editedUbicacion,
-                        onValueChange = { editedUbicacion = it },
+                        value = viewModel.editedUbicacion,
+                        onValueChange = { viewModel.updateEditedFields(ubicacion = it) },
                         label = { Text("Ubicación", color = Color.White) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -651,38 +498,14 @@ fun HorariosContent(modifier: Modifier = Modifier) {
             },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        horarioToEdit?.let { horario ->
-                            val updates = hashMapOf<String, Any>(
-                                "descripcion" to editedDescripcion,
-                                "horaInicio" to editedHoraInicio,
-                                "horaFin" to editedHoraFin,
-                                "ubicacion" to editedUbicacion
-                            )
-                            
-                            db.collection("horarios").document(horario.documentId)
-                                .update(updates)
-                                .addOnSuccessListener {
-                                    Toast.makeText(context, "Horario actualizado", Toast.LENGTH_SHORT).show()
-                                    reloadTrigger++
-                                }
-                                .addOnFailureListener { e ->
-                                    Toast.makeText(context, "Error al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
-                                }
-                        }
-                        showEditDialog = false
-                        horarioToEdit = null
-                    }
+                    onClick = { viewModel.updateHorario(context) }
                 ) {
                     Text("Guardar", color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { 
-                        showEditDialog = false
-                        horarioToEdit = null
-                    }
+                    onClick = { viewModel.hideEditDialog() }
                 ) {
                     Text("Cancelar", color = Color.White)
                 }
