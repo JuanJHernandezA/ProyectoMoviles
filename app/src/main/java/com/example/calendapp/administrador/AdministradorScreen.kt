@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -79,12 +80,19 @@ fun AdministradorScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxSize().padding(padding),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.encabezado),
-                    contentDescription = "Imagen de encabezado",
-                    modifier = Modifier.fillMaxWidth().height(150.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .background(Color(0xFF0A192F))
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.encabezado),
+                        contentDescription = "Imagen de encabezado",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
                 HorariosContent(Modifier.weight(1f), viewModel)
             }
         }
@@ -238,7 +246,7 @@ fun HorariosContent(modifier: Modifier = Modifier, viewModel: AdministradorViewM
                 .weight(1f)
                 .horizontalScroll(scrollState)
         ) {
-            val totalWidthDp = if (5 > viewModel.horarios.size && viewModel.horarios.size > 1) 500.dp else if (viewModel.horarios.size > 5) 800.dp else 400.dp
+            val totalWidthDp = if (5 > viewModel.horarios.size && viewModel.horarios.size > 1) 500.dp else if (viewModel.horarios.size > 5) 800.dp else 360.dp
 
             Box(
                 modifier = Modifier

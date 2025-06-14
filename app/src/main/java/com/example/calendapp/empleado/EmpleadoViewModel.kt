@@ -20,10 +20,10 @@ data class EmpleadoState(
     val error: String? = null
 )
 
-class EmpleadoViewModel : ViewModel() {
+class EmpleadoViewModel(private val cedula: String) : ViewModel() {
     private val _state = MutableStateFlow(EmpleadoState())
     val state: StateFlow<EmpleadoState> = _state.asStateFlow()
-    private val model = EmpleadoModel()
+    private val model = EmpleadoModel(cedula)
 
     init {
         _state.value = _state.value.copy(selectedDate = model.getCurrentDate())
