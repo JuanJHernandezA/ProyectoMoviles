@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
+import androidx.compose.ui.layout.ContentScale
 import com.example.calendapp.administrador.Horario
 import com.example.calendapp.administrador.toHourDecimal
 
@@ -53,7 +54,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun EmpleadoScreen(
     navController: NavHostController,
     cedula: String,
-    viewModel: EmpleadoViewModel = viewModel()
+    viewModel: EmpleadoViewModel = viewModel { EmpleadoViewModel(cedula) }
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -106,19 +107,25 @@ fun EmpleadoScreen(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.encabezado), // Reemplázalo con tu imagen
-                    contentDescription = "Imagen de encabezado",
-                    modifier = Modifier.fillMaxWidth().height(150.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .background(Color(0xFF0A192F))
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.encabezado),
+                        contentDescription = "Imagen de encabezado",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
                 HorariosContent(
                     modifier = Modifier.weight(1f),
+                    cedula,
                     state = state,
                     onDateSelected = viewModel::updateSelectedDate
                 )
-
-
             }
         }
     }
@@ -164,16 +171,12 @@ fun DrawerItem(text: String, icon: ImageVector, onClick: () -> Unit) {
         Text(text, color = Color.White)
     }
 }
-fun String.toHourDecimal(): Float {
-    val parts = this.split(":")
-    val hour = parts.getOrNull(0)?.toIntOrNull() ?: 0
-    val minute = parts.getOrNull(1)?.toIntOrNull() ?: 0
-    return hour + minute / 60f
-}
+
 
 @Composable
 fun HorariosContent(
     modifier: Modifier = Modifier,
+    cedula: String,
     state: EmpleadoState,
     onDateSelected: (String) -> Unit
 ) {
@@ -199,7 +202,7 @@ fun HorariosContent(
     val eventColorBase = Color(0xFF01C383)
     val headerColor = Color(0xFF132D46)
     val headerTextColor = Color.White
-
+    Log.d("EmpleadoScreen", "Estado del usuario - Cédula: $cedula")
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -250,7 +253,7 @@ fun HorariosContent(
                 .weight(1f)
                 .horizontalScroll(rememberScrollState())
         ) {
-            val totalWidthDp = if (5 > state.horarios.size && state.horarios.size > 1) 500.dp else if (state.horarios.size > 5) 800.dp else 380.dp
+            val totalWidthDp = 360.dp
 
             Box(
                 modifier = Modifier

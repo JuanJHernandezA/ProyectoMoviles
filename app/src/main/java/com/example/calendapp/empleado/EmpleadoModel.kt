@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
-class EmpleadoModel {
+class EmpleadoModel(private val cedula: String) {
     private val db = FirebaseFirestore.getInstance()
     private val TAG = "EmpleadoModel"
 
@@ -48,7 +48,7 @@ class EmpleadoModel {
 
         Log.d(TAG, "Horarios procesados: ${fetchedHorarios.size}")
 
-        val filteredHorarios = fetchedHorarios.filter { horario ->
+        val filteredHorarios = fetchedHorarios.filter  { it.empleadoId == cedula }.filter{ horario ->
             // Verificar si la fecha seleccionada está en la lista de fechas
             val matchesFechas = horario.fechas.any { fecha ->
                 Log.d(TAG, "Comparando fecha en array: $fecha con $selectedDate")
