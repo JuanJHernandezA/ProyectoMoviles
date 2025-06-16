@@ -16,14 +16,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.calendapp.login.LoginScreen
 import com.example.calendapp.login.LoginViewModel
 import com.example.calendapp.administrador.AdministradorScreen
-import com.example.calendapp.deleteUser.DeleteUserScreen
+import com.example.calendapp.deleteUser.view.DeleteUserScreen
 import com.example.calendapp.empleado.EmpleadoScreen
 import com.example.calendapp.agregar_calendario.view.AgregarCalendarioUI
 import com.example.calendapp.agregar_calendario.viewmodel.AgregarCalendarioViewModel
 import com.example.calendapp.notificaciones.view.NotificacionesUI
 import com.example.calendapp.config.UserViewModel
-import com.example.calendapp.deleteUser.ConfirmadoEliminarScreen
-import com.example.calendapp.deleteUser.ConfirmarEliminarScreen
+
 import com.example.calendapp.editar_usuario.EditUserScreen
 import com.example.calendapp.registerUser.AddUserScreen
 
@@ -37,35 +36,43 @@ class MainActivity : ComponentActivity() {
                 val userViewModel = remember { UserViewModel() }
 
                 NavHost(navController, startDestination = "login") {
-                    composable("login") { 
+                    composable("login") {
                         val loginViewModel: LoginViewModel = viewModel()
                         val loginState by loginViewModel.loginState.collectAsState()
-                        
+
                         LoginScreen(
                             viewModel = loginViewModel,
-                            onLoginSuccess = { 
+                            onLoginSuccess = {
                                 Log.d("MainActivity", "Login exitoso - Rol: ${loginState.userRole}")
                                 userViewModel.updateUser(
                                     loginState.userName,
                                     loginState.userRole,
                                     loginState.cedula
                                 )
-                                
+
                                 when (loginState.userRole?.lowercase()) {
                                     "admin" -> {
-                                        Log.d("MainActivity", "Navegando a pantalla de administrador")
+                                        Log.d(
+                                            "MainActivity",
+                                            "Navegando a pantalla de administrador"
+                                        )
                                         navController.navigate("administrador") {
                                             popUpTo("login") { inclusive = true }
                                         }
                                     }
+
                                     "usuario" -> {
                                         Log.d("MainActivity", "Navegando a pantalla de empleado")
                                         navController.navigate("empleado/${loginState.cedula}") {
                                             popUpTo("login") { inclusive = true }
                                         }
                                     }
+
                                     else -> {
-                                        Log.e("MainActivity", "Rol inválido: ${loginState.userRole}")
+                                        Log.e(
+                                            "MainActivity",
+                                            "Rol inválido: ${loginState.userRole}"
+                                        )
                                         userViewModel.updateUser("", "", "")
                                         navController.navigate("login") {
                                             popUpTo("login") { inclusive = true }
@@ -100,13 +107,7 @@ class MainActivity : ComponentActivity() {
                     composable("eliminar_usuario") {
                         DeleteUserScreen(navController)
                     }
-                    composable("confirmar_eliminar/{email}") { backStackEntry ->
-                        val email = backStackEntry.arguments?.getString("email") ?: ""
-                        ConfirmarEliminarScreen(navController, email)
-                    }
-                    composable("confirmado_eliminar") {
-                        ConfirmadoEliminarScreen(navController)
-                    }
+                
                     composable("editar_perfil") {
                         EditUserScreen(
                             onBackClick = { navController.navigateUp() }
