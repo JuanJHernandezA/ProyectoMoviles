@@ -215,7 +215,12 @@ fun HorariosContent(modifier: Modifier = Modifier, viewModel: AdministradorViewM
                 color = Color.White,
                 modifier = Modifier.weight(1f)
             )
-            Button(onClick = { datePickerDialog.show() }) {
+            Button(
+                onClick = { datePickerDialog.show() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF0A446D)
+                )
+            ) {
                 Text("Seleccionar día")
             }
         }
