@@ -33,6 +33,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.ui.layout.ContentScale
@@ -48,20 +49,24 @@ import java.net.URL
 import kotlinx.coroutines.tasks.await
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.calendapp.notificaciones.viewmodel.NotificacionesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmpleadoScreen(
     navController: NavHostController,
     cedula: String,
-    viewModel: EmpleadoViewModel = viewModel { EmpleadoViewModel(cedula) }
+    viewModel: EmpleadoViewModel = viewModel { EmpleadoViewModel(cedula) },
+    notificacionesViewModel: NotificacionesViewModel = viewModel()
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val tieneNotificacionesNoLeidas by notificacionesViewModel.tieneNotificacionesNoLeidas.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.loadHorarios()
+        notificacionesViewModel.cargarNotificaciones(cedula)
     }
 
     ModalNavigationDrawer(
@@ -90,8 +95,24 @@ fun EmpleadoScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = {navController.navigate("notificaciones")}) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
+                        Box {
+                            IconButton(
+                                onClick = {
+                                    notificacionesViewModel.marcarTodasComoLeidas()
+                                    navController.navigate("notificaciones")
+                                }
+                            ) {
+                                Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
+                            }
+                            if (tieneNotificacionesNoLeidas) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(Color.Red, shape = CircleShape)
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = (-4).dp, y = 4.dp)
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

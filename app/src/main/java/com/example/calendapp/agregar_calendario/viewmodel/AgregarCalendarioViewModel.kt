@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.calendapp.agregar_calendario.model.Calendario
 import com.example.calendapp.agregar_calendario.model.Usuario
 import com.example.calendapp.agregar_calendario.model.UsuariosSugeridosEjemplo
+import com.example.calendapp.utils.EmailService
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,7 @@ import java.util.*
 
 class AgregarCalendarioViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
+    private val emailService = EmailService()
     
     // Estado para los campos de entrada
     val nombreUsuario = mutableStateOf("")
@@ -234,6 +236,36 @@ class AgregarCalendarioViewModel : ViewModel() {
                     )
                     Log.d("AgregarCalendario", "Guardando notificación: $notificacionData")
                     db.collection("notificaciones").add(notificacionData).await()
+
+                    // Obtener el correo del usuario
+                    val userDoc = db.collection("users")
+                        .whereEqualTo("cedula", usuario.cedula)
+                        .get()
+                        .await()
+                        .documents
+                        .firstOrNull()
+
+                    val userEmail = userDoc?.getString("correo")
+                    if (userEmail != null) {
+                        // Enviar correo electrónico
+                        val emailSubject = "Nuevo Horario Asignado - CalendApp"
+                        val emailBody = """
+                            Hola ${usuario.nombre} ${usuario.apellido},
+                            
+                            Se te ha asignado un nuevo horario:
+                            
+                            Descripción: ${descripcion.value}
+                            Fechas: ${fechasSeleccionadas.value.joinToString(", ")}
+                            Hora de inicio: ${horaInicio.value}
+                            Hora de fin: ${horaFin.value}
+                            Ubicación: ${ubicacion.value}
+                            
+                            Saludos,
+                            El equipo de CalendApp
+                        """.trimIndent()
+
+                        emailService.sendEmail(userEmail, emailSubject, emailBody)
+                    }
                 }
 
                 // Limpiar los campos después de guardar exitosamente
@@ -242,9 +274,9 @@ class AgregarCalendarioViewModel : ViewModel() {
                 mensajeExito.value = "Horario guardado exitosamente"
                 mensajeError.value = null
             } catch (e: Exception) {
-                Log.e("AgregarCalendario", "Error al guardar el horario", e)
+                Log.e("AgregarCalendario", "Error al guardar horario: ${e.message}")
                 mensajeError.value = "Error al guardar el horario: ${e.message}"
-                mensajeExito.value = null
+                mostrarErrores.value = true
             }
         }
     }

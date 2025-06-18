@@ -4,5 +4,6 @@ data class Notificacion(
     val id: String = "",
     val descripcion: String = "",
     val cedulaEmpleado: String = "",
-    val fecha: String = ""
+    val fecha: String = "",
+    val leida: Boolean = false
 ) 
