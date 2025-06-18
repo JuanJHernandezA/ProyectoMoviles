@@ -23,14 +23,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun LoginScreenPreview() {
     LoginScreen(
         viewModel = LoginViewModel(),
-        onLoginSuccess = {}
+        onLoginSuccess = {},
+        onForgotPassword = {}
     )
 }
 
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onForgotPassword: () -> Unit
 ) {
     val loginState by viewModel.loginState.collectAsStateWithLifecycle()
 
@@ -107,7 +109,19 @@ fun LoginScreen(
                 enabled = !loginState.isLoading
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = onForgotPassword,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    text = "¿Olvidaste tu contraseña?",
+                    color = Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = { viewModel.login() },
