@@ -22,12 +22,7 @@ fun PasswordRecoveryScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) {
-            onBackToLogin()
-            viewModel.resetState()
-        }
-    }
+
 
     Box(
         modifier = Modifier
@@ -99,7 +94,10 @@ fun PasswordRecoveryScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(
-                onClick = onBackToLogin
+                onClick = {
+                    onBackToLogin()
+                    viewModel.resetState()
+                }
             ) {
                 Text(
                     text = "Volver al inicio de sesión",
@@ -119,7 +117,7 @@ fun PasswordRecoveryScreen(
             if (state.isSuccess) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Se ha enviado un correo con instrucciones para recuperar tu contraseña",
+                    text = "Si el correo está registrado, se ha enviado un enlace para restablecer la contraseña.",
                     color = Color.Green,
                     modifier = Modifier.padding(horizontal = 16.dp),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
