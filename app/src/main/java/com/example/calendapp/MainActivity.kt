@@ -22,6 +22,7 @@ import com.example.calendapp.agregar_calendario.view.AgregarCalendarioUI
 import com.example.calendapp.agregar_calendario.viewmodel.AgregarCalendarioViewModel
 import com.example.calendapp.notificaciones.view.NotificacionesUI
 import com.example.calendapp.config.UserViewModel
+import com.example.calendapp.password_recovery.PasswordRecoveryScreen
 
 import com.example.calendapp.editar_usuario.EditUserScreen
 import com.example.calendapp.registerUser.AddUserScreen
@@ -79,6 +80,16 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
+                            },
+                            onForgotPassword = {
+                                navController.navigate("password_recovery")
+                            }
+                        )
+                    }
+                    composable("password_recovery") {
+                        PasswordRecoveryScreen(
+                            onBackToLogin = {
+                                navController.navigateUp()
                             }
                         )
                     }
