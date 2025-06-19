@@ -251,7 +251,7 @@ fun HorariosContent(modifier: Modifier = Modifier, viewModel: AdministradorViewM
                 .weight(1f)
                 .horizontalScroll(scrollState)
         ) {
-            val totalWidthDp = if (5 > viewModel.horarios.size && viewModel.horarios.size > 1) 500.dp else if (viewModel.horarios.size > 5) 800.dp else 360.dp
+            val totalWidthDp = if (5 > viewModel.horarios.size && viewModel.horarios.size > 1) 700.dp else if (viewModel.horarios.size > 5) 1000.dp else 360.dp
 
             Box(
                 modifier = Modifier
