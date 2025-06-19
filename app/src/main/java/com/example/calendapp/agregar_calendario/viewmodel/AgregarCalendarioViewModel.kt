@@ -18,9 +18,9 @@ import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.*
 
-class AgregarCalendarioViewModel : ViewModel() {
-    private val db = FirebaseFirestore.getInstance()
-    
+class AgregarCalendarioViewModel(
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+) : ViewModel() {
     // Estado para los campos de entrada
     val nombreUsuario = mutableStateOf("")
     val horaInicio = mutableStateOf("00:00")
