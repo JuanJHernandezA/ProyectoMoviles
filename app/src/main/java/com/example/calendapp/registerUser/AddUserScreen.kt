@@ -95,7 +95,7 @@ fun AddUserScreen(
         // Formulario
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Agregar suario",
+                text = "Agregar usuario",
                 fontSize = 24.sp,
                 color = White,
                 modifier = Modifier.padding(top = 10.dp)
